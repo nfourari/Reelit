@@ -1,7 +1,7 @@
 function LoggedInName()
 {
 
-    var user={}
+    //var user={}
 
     function doLogout(event:any) : void
     {

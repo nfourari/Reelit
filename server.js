@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
-const mongoUri = process.env.MONGODB_URI || "mongodb+srv://chinglefong:gQFangwhH2dLWZf5@shuzzydb.mongodb.net/?retryWrites=true&w=majority";
+const mongoUri = process.env.MONGODB_URI;
 mongoose.connect(mongoUri)
   .then(() => console.log('🗄️  MongoDB connected'))
   .catch(err => console.error(err));
