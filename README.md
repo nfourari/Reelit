@@ -1,5 +1,7 @@
 # Shuzzy
 
+Visit our website: (http://www.shuzzy.top)
+
 ## Application Overview
 
 **Shuzzy** is an interactive fishing platform that lets users:
