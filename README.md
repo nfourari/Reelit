@@ -1,6 +1,6 @@
 # Shuzzy
 
-Visit our website: (http://www.shuzzy.top)
+*Visit our website:* http://www.shuzzy.top
 
 ## Application Overview
 
