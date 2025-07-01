@@ -76,7 +76,6 @@ export default function Login()
 			if (data.error) 
 			{
 				setError(data.error);
-
 			} 
 			else 
 			{
