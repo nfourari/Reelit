@@ -1,7 +1,10 @@
-function LoggedInName()
+// Displays current user's name and provides a logout button.
+
+// import React from 'react';
+// import { useNavigate } from 'react-router-dom';
+
+export default function LoggedInName()
 {
-<<<<<<< Updated upstream
-=======
   function doLogout(event:any) : void
   {
     event.preventDefault();
@@ -10,16 +13,6 @@ function LoggedInName()
     window.location.href = '/'; // Redirect to home page
     // navigate('/'); // Alternatively, use navigate if you have it set up
   };
->>>>>>> Stashed changes
-
-    //var user={}
-
-    function doLogout(event:any) : void
-    {
-	    event.preventDefault();
-		
-        alert('doLogout');
-    };    
 
     return(
       <div id="loggedInDiv">
@@ -30,4 +23,3 @@ function LoggedInName()
     );
 };
 
-export default LoggedInName;
