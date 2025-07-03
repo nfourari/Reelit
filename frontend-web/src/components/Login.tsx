@@ -66,27 +66,23 @@ export default function Login()
 					body: JSON.stringify({login: username, password})
 			});
 
+			const data = await res.json();
+
 			if (!res.ok) {
-        		throw new Error(`HTTP ${res.status}`);
+        		setError(data.error || `HTTP ${res.status}`);
+				return;
     		}
 
-			const data = await res.json();
 			console.log('Login response →', data);
 
-			if (data.error) 
-			{
-				setError(data.error);
-			} 
-			else 
-			{
-				// no error, so store user data and navigate
-				console.log('Login successful, storing user data');
-				setError('');
-				localStorage.setItem('user', JSON.stringify(data));
-				navigate('/shuzzy');
-			}
-
+			
+			// no error, so store user data and navigate
+			console.log('Login successful, storing user data');
+			setError('');
+			localStorage.setItem('user', JSON.stringify(data));
+			navigate('/shuzzy');
 		} 
+
 		catch(err)
 		{
 			if (err instanceof Error)
@@ -117,44 +113,12 @@ export default function Login()
 					onChange = {e => setPassword(e.target.value)}
 					className = "input"
 				/>
-				
-				<button type = "submit" className= "button">Log In</button>
+				<div>
+					<button type = "submit" className= "button">Log In</button>
+				</div>
 				{error && <p className="text-red-600">{error} </p>}
 
 			</form>
 		);
 }
 
- 
- 
- // {<input type="submit" id="loginButton" className="buttons" value = "Do It" onClick={click} /> }
- 
-//     const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     try {
-//       const result = await post<{ token: string }>('login', { username, password });
-//       // e.g. store token, redirect, etc.
-//       console.log('Logged in, got token:', result.token);
-//     } catch (err: any) {
-//       setError(err.message || 'Login failed');
-//     }
-//   };
-
-//   return (
-//     <form onSubmit={handleSubmit}>
-//       <input
-//         value={username}
-//         onChange={e => setUsername(e.target.value)}
-//         placeholder="Username"
-//       />
-//       <input
-//         type="password"
-//         value={password}
-//         onChange={e => setPassword(e.target.value)}
-//         placeholder="Password"
-//       />
-//       <button type="submit">Log in</button>
-//       {error && <p style={{ color: 'red' }}>{error}</p>}
-//     </form>
-//   );
-// }

@@ -56,182 +56,9 @@ app.use((req, res, next) =>
 // Mount routers under their feature paths
 // app.use('/api/auth', authRouter);
 
+
 // (Optional) health check
 // app.get('/ping', (_req, res) => res.send('pong'));
-const User = require('./models/User');
-
-app.post('/api/addcard', async (req, res) => 
-{
-  const { userId, card } = req.body;
-
-  // TEMP FOR LOCAL TESTING
-  cardList.push(card);
-
-  const ret = { error: '' };
-  res.status(200).json(ret);
-
-});
-
-app.post('/api/login', async (req, res, next) =>
-{
-  // incoming: login, password
-  // outgoing: id, firstName, lastName, error
-  const { login, password } = req.body;
-  
-  try 
-  {
-    // Find user document matching both login and password
-    const user = await User.findOne( { login, password } ).exec();
-
-    if (!user)
-    {
-      // If no user found, return error
-      return res.status(401).json({error: 'Invalid credentials'});
-    }
-
-    // Return only the fields your client needs
-    return res.json({
-        id: user._id,
-        firstName: user.FirstName,
-        lastName: user.lastName,
-        error: ''
-
-      });
-  } catch (err) {
-    console.error('Login error:', err);
-    return res.status(500).json( {error: 'Server error'});
-  }
-  // let error = '';
-  // const db = client.db('Shuzzam'); // Use your database name here
-  // const results = await db.collection('Users').find({Login:login, Password:password}).toArray();
-  // let id = -1, fn = '', ln = '';
-  
-  // // if ( login.toLowerCase() === 'thud' && password === 'COP4331C')
-  // // {
-  // //   id = 1; 
-  // //   fn = 'Thu';
-  // //   ln = 'Do';
-  // // }
-  // if ( results.length > 0 )
-  // {
-  //   id = results[0].UserID;
-  //   fn = results[0].FirstName;
-  //   ln = results[0].LastName;
-  // }
-
-  // else
-  // {
-  //   error = 'Invalid username / password';
-  // }
-
-  // var ret = {id: id, firstName:fn, lastName: ln, error: error};
-  // res.status(200).json({id, firstName: fn, lastName: ln, error});
-});
-
-app.post('/api/searchcards', async (req, res, next) =>
-{
-  // incoming: userID, search
-  // outgoing: results[], error
-
-  const { userId, search } = req.body;
-  var _search = search.toLowerCase().trim();
-  var _ret = [];
-
-  for (var i = 0; i < cardList.length; i++)
-  {
-    var lowerFromList = cardList[i].toLocaleLowerCase();
-    if ( lowerFromList.indexOf (_search) >= 0)
-    {
-      _ret.push( cardList[i] );
-    }
-  }
-
-  var ret = {results: _ret, error:''};
-  res.status(200).json(ret);
-
-});
-
-
-// Start server
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-
-
-// Simple schemas
-// const User = mongoose.model('User', new mongoose.Schema({
-//   login: String,
-//   password: String,
-//   firstName: String,
-//   lastName: String
-// }));
-
-// const Card = mongoose.model('Card', new mongoose.Schema({
-//   card: String,
-//   userId: Number
-// }));
-
-// app.post('/api/login', async (req, res) => {
-//   const { login, password } = req.body;
-//   const user = await User.findOne({ login, password });
-
-// if (user) {
-//   res.json({ id: user._id, firstName: user.firstName, lastName:
-//   user.lastName });
-// } 
-// else {
-//   res.json({ id: -1 });
-// }
-// });
-
-// app.post('/api/addcard', async (req, res) => {
-// const { userId, card } = req.body;
-
-// try {
-//   await Card.create({ userId, card });
-//   res.json({ error: '' });
-// } 
-// catch (err) {
-//   res.json({ error: err.message });
-// }
-// });
-
-// app.post('/api/searchcards', async (req, res) => {
-//   const { userId, search } = req.body;
-//   const cards = await Card.find({ userId, card: { $regex: search, $options:
-//   'i' } });
-//   res.json({ results: cards.map(c => c.card), error: '' });
-// });
-
-
-// import 'dotenv/config'
-// import mongoose from 'mongoose';
-// import express from 'express';
-// import cors from 'cors';
-
-// const app = express();
-
-// // Middleware
-// app.use(cors());
-// app.use(express.json());
-
-// // MongoDB connection
-// const mongoUri = process.env.MONGODB_URI;
-// mongoose.connect(mongoUri)
-//   .then(() => console.log('🗄️  MongoDB connected'))
-//   .catch(err => console.error(err));
-
-// // Example endpoint
-// app.get('/api/health', (req, res) => {
-//   res.json({ status: 'OK' });
-// });
-
-// // Start server
-//  // start Node + Express server on port 5000
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 
 // var cardList = 
@@ -336,3 +163,153 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 //   'Rickey Henderson',
 //   'Babe Ruth'
 // ];
+
+
+const User = require('./models/User');
+const Card = require('./models/Card');
+
+
+// ADD NEW CARD
+app.post('/api/addcard', async (req, res) => 
+{
+  const { userId, card } = req.body;
+
+  try
+  {
+    await Card.create({ userId, card});
+    res.json({ error: ''});
+  }
+  catch (err)
+  {
+    console.error('Error adding card:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
+});
+
+
+// REGISTER
+const bcrypt = require('bcrypt');
+
+app.post(
+  '/api/register',
+  async (req, res) =>
+  {
+    const { login, email, password, firstName, lastName,} = req.body;
+
+    if (!login || !email || ! password || !firstName || !lastName)
+    {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+      
+    try 
+    {
+      // Check for existing user
+      const existing = await User.findOne({ login }).exec();
+
+      if (existing)
+      {
+        return res.status(409).json({ error: 'Account already exists'});
+      }
+
+      // Hash password
+      const hash = await bcrypt.hash(password, 10);
+
+      // Create new user
+      const newUser = await User.create(
+        {
+          login, 
+          email, 
+          password: hash,
+          firstName,
+          lastName
+        }
+      );
+
+      // Return minimal user information
+      return res.status(201).json(
+        {
+          id: newUser._id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          error: ''
+        }
+      );
+    }
+    catch (err)
+    {
+      console.error('Register error', err);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+
+// LOGIN
+app.post('/api/login', async (req, res) =>
+{
+  // incoming: login, password
+  // outgoing: id, firstName, lastName, error
+  const { login, password } = req.body;
+  
+  try 
+  {
+    // Find user document matching both login and password
+    const user = await User.findOne( { login } ).exec();
+
+    if (!user)
+    {
+      // If no user found, return error
+      return res.status(401).json({error: 'Account not found'});
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match)
+    {
+      return res.status(401).json({error: 'Incorrect password. Please try again.'});
+    }
+
+    // Return only the fields your client needs if there's a match
+    return res.json({
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        error: ''
+
+      });
+  } catch (err) {
+    console.error('Login error:', err);
+    return res.status(500).json( {error: 'Server error'});
+  }
+});
+
+
+// SEARCH CARDS
+app.post('/api/searchcards', async (req, res) =>
+{
+  // incoming: userID, search
+
+  const { userId, search } = req.body;
+
+  try
+  {
+      const regex = new RegExp(search, 'i'); // 'i' for case-insensitive
+      const cards = await Card.find({ userId, card: regex}).select('card -_id');
+      res.json({ results: cards.map(c => c.card), error: ''});
+  }
+
+  catch(err)
+  {
+    console.error('Search error:', err);
+    res.status(500).json({ results: [], error: err.message });
+  }
+});
+
+
+
+
+// Start server
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+

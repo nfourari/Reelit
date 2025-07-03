@@ -6,9 +6,9 @@ const CardPage = () =>
 {
     return(
         <div>
-            <PageTitle />
-            <LoggedInName />
+            <PageTitle title="Dashboard" />
             <CardUI />
+            <LoggedInName />
         </div>
     );
 }
