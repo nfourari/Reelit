@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const cardSchema = new mongoose.Schema({
-    userID: { type: Number, required: true },
+    userId: { type: String, required: true },
     card: { type: String, required: true },
 });
 
