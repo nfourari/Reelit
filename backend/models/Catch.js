@@ -10,4 +10,4 @@ const catchSchema = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Catches', catchSchema, 'Catches');
+module.exports = mongoose.model('Catch', catchSchema, 'Catches');
