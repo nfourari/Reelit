@@ -10,7 +10,6 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final _loginCtrl     = TextEditingController();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl  = TextEditingController();
   final _emailCtrl     = TextEditingController();
@@ -21,7 +20,6 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   void dispose() {
-    _loginCtrl.dispose();
     _firstNameCtrl.dispose();
     _lastNameCtrl.dispose();
     _emailCtrl.dispose();
@@ -45,7 +43,6 @@ class _SignupPageState extends State<SignupPage> {
 
     final api = context.read<ApiService>();
     final res = await api.signup(
-      login:     _loginCtrl.text.trim(),
       firstName: _firstNameCtrl.text.trim(),
       lastName:  _lastNameCtrl.text.trim(),
       email:     _emailCtrl.text.trim(),

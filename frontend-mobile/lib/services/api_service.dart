@@ -37,7 +37,6 @@ class ApiService {
 
   /// Sign up a new user.
   Future<Map<String, dynamic>> signup({
-    required String login,
     required String firstName,
     required String lastName,
     required String email,
@@ -48,7 +47,6 @@ class ApiService {
       uri,
       headers: _headers,
       body: jsonEncode({
-        'login':     login,
         'firstName': firstName,
         'lastName':  lastName,
         'email':     email,
