@@ -66,7 +66,7 @@ const Signup = () => {
       } else {
         toast({
           title: "Signup failed",
-          description: data.message || "Unable to create account",
+          description: data.error ?? data.message ?? "Unable to create account",
           variant: "destructive",
         });
       }

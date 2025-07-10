@@ -134,13 +134,13 @@ class _SignupPageState extends State<SignupPage> {
                             style: TextStyle(color: Colors.grey[600]),
                           ),
 
-                          const SizedBox(height: 24),
-                          // New fields: login, first name, last name
-                          TextField(
-                            controller: _loginCtrl,
-                            decoration:
-                                const InputDecoration(labelText: 'Username'),
-                          ),
+                          // const SizedBox(height: 24),
+                          // // New fields: login, first name, last name
+                          // TextField(
+                          //   controller: _loginCtrl,
+                          //   decoration:
+                          //       const InputDecoration(labelText: 'Username'),
+                          // ),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _firstNameCtrl,

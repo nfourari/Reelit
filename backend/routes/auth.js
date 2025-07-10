@@ -18,7 +18,7 @@ router.post('/register', async (req, res) =>
     if ( !password || !firstName || !lastName || !email) {
       return res.status(400).json({
         success: false,
-        error: 'password, firstName, lastName and email are required'
+        message: 'password, firstName, lastName and email are required'
       });
     }
 
@@ -30,7 +30,7 @@ router.post('/register', async (req, res) =>
   catch (err) 
   {
     // Duplicate key or validation error
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 });
 
