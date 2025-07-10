@@ -5,7 +5,7 @@ class ApiService {
   // Replace with our actual backend URL
   static const String _baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://localhost:5000/api',
+    defaultValue: 'http://localhost:5001/api',
   );
 
   // Optional: store auth token once logged in
@@ -18,29 +18,45 @@ class ApiService {
     return headers;
   }
 
+
   /// Log in and store the returned token for future calls.
   Future<Map<String, dynamic>> login(String email, String password) async {
+    final uri = Uri.parse('$_baseUrl/auth/login');
     final resp = await http.post(
-      Uri.parse('$_baseUrl/auth/login'),
+      uri,
       headers: _headers,
       body: jsonEncode({'email': email, 'password': password}),
     );
-    final data = jsonDecode(resp.body);
+
+    final data = jsonDecode(resp.body) as Map<String, dynamic>;
     if (resp.statusCode == 200 && data['token'] != null) {
-      _token = data['token'];
+      _token = data['token'] as String;
     }
     return data;
   }
 
   /// Sign up a new user.
-  Future<Map<String, dynamic>> signup(
-      String name, String email, String password) async {
+  Future<Map<String, dynamic>> signup({
+    required String login,
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/auth/register');
     final resp = await http.post(
-      Uri.parse('$_baseUrl/auth/register'),
+      uri,
       headers: _headers,
-      body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      body: jsonEncode({
+        'login':     login,
+        'firstName': firstName,
+        'lastName':  lastName,
+        'email':     email,
+        'password':  password,
+      }),
     );
-    return jsonDecode(resp.body);
+
+    return jsonDecode(resp.body) as Map<String, dynamic>;
   }
 
   /// Fetch the dashboard data (e.g. activity feed, quick stats, weather).

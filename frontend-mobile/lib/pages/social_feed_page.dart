@@ -168,7 +168,7 @@ class _SpotDetailsPageState extends State<SpotDetailsPage> {
                             SizedBox(height: 8),
                             Image.network(c['image'], height: 150, fit: BoxFit.cover),
                           ],
-                          ButtonBar(
+                          OverflowBar(
                             children: [
                               TextButton.icon(
                                 onPressed: () {},

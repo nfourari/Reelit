@@ -1,20 +1,30 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
   server: {
+    host: "::",
+    port: 8080,
     proxy: {
-      // whenever the browser requests /api/* on port 5173,
-      // forward it to http://localhost:5001/api/*
+      // any request starting with /api will be proxied to localhost:5001
       '/api': {
         target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
       },
     },
-  }
-})
+  },
+  plugins: [
+    react(),
+    mode === 'development' &&
+    componentTagger(),
+  ].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+}));

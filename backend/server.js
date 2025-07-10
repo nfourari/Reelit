@@ -15,11 +15,10 @@
 
 require('dotenv').config();
 const express = require('express');
+const api = require('./routes');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-// Import routes
-// const authRouter = require('./api/auth');
 
 // Connect to MongoDB
 mongoose
@@ -38,6 +37,7 @@ app.use((req, res, next) => {
 // Global middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api', api);
 
 app.use((req, res, next) => 
 {
@@ -189,102 +189,103 @@ app.post('/api/addcard', async (req, res) =>
 
 
 // REGISTER
-const bcrypt = require('bcrypt');
+// const bcrypt = require('bcrypt');
 
-app.post(
-  '/api/register',
-  async (req, res) =>
-  {
-    const { login, email, password, firstName, lastName,} = req.body;
+// app.post(
+//   '/api/register',
+//   async (req, res) =>
+//   {
+//     const { login, email, password, firstName, lastName,} = req.body;
 
-    if (!login || !email || ! password || !firstName || !lastName)
-    {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
+//     if (!login || !email || ! password || !firstName || !lastName)
+//     {
+//       return res.status(400).json({ error: 'All fields are required' });
+//     }
       
-    try 
-    {
-      // Check for existing user
-      const existing = await User.findOne({ login }).exec();
+//     try 
+//     {
+//       // Check for existing user
+//       const existing = await User.findOne({ login }).exec();
 
-      if (existing)
-      {
-        return res.status(409).json({ error: 'Account already exists'});
-      }
+//       if (existing)
+//       {
+//         return res.status(409).json({ error: 'Account already exists'});
+//       }
 
-      // Hash password
-      const hash = await bcrypt.hash(password, 10);
+//       // Hash password
+//       const hash = await bcrypt.hash(password, 10);
 
-      // Create new user
-      const newUser = await User.create(
-        {
-          login, 
-          email, 
-          password: hash,
-          firstName,
-          lastName
-        }
-      );
+//       // Create new user
+//       const newUser = await User.create(
+//         {
+//           login, 
+//           email, 
+//           password: hash,
+//           firstName,
+//           lastName
+//         }
+//       );
 
-      // Return minimal user information
-      return res.status(201).json(
-        {
-          id: newUser._id,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          error: ''
-        }
-      );
-    }
-    catch (err)
-    {
-      console.error('Register error', err);
-      return res.status(500).json({ error: 'Server error' });
-    }
-  }
-);
+//       // Return minimal user information
+//       return res.status(201).json(
+//         {
+//           id: newUser._id,
+//           firstName: newUser.firstName,
+//           lastName: newUser.lastName,
+//           error: ''
+//         }
+//       );
+//     }
+//     catch (err)
+//     {
+//       console.error('Register error', err);
+//       return res.status(500).json({ error: 'Server error' });
+//     }
+//   }
+// );
 
 
-// LOGIN
-app.post('/api/login', async (req, res) =>
-{
-  // incoming: login, password
-  // outgoing: id, firstName, lastName, error
-  const { login, password } = req.body;
+// // LOGIN
+// app.post('/api/login', async (req, res) =>
+// {
+//   // incoming: login, password
+//   // outgoing: id, firstName, lastName, error
+//   const { login, password } = req.body;
   
-  try 
-  {
-    // Find user document matching both login and password
-    const user = await User.findOne( { login } ).exec();
+//   try 
+//   {
+//     // Find user document matching both login and password
+//     const user = await User.findOne( { login } ).exec();
 
-    if (!user)
-    {
-      // If no user found, return error
-      return res.status(401).json({error: 'Account not found'});
-    }
+//     if (!user)
+//     {
+//       // If no user found, return error
+//       return res.status(401).json({error: 'Account not found'});
+//     }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match)
-    {
-      return res.status(401).json({error: 'Incorrect password. Please try again.'});
-    }
+//     const match = await bcrypt.compare(password, user.password);
+//     if (!match)
+//     {
+//       return res.status(401).json({error: 'Incorrect password. Please try again.'});
+//     }
 
-    // Return only the fields your client needs if there's a match
-    return res.json({
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        error: ''
+//     // Return only the fields your client needs if there's a match
+//     return res.json({
+//         id: user._id,
+//         firstName: user.firstName,
+//         lastName: user.lastName,
+//         error: ''
 
-      });
-  } catch (err) {
-    console.error('Login error:', err);
-    return res.status(500).json( {error: 'Server error'});
-  }
-});
+//       });
+//   } catch (err) {
+//     console.error('Login error:', err);
+//     return res.status(500).json( {error: 'Server error'});
+//   }
+// });
 
 
 // SEARCH CARDS
+
 app.post('/api/searchcards', async (req, res) =>
 {
   // incoming: userID, search

@@ -1,29 +1,24 @@
-// backend/models/User.js
-// This file defines the User model for MongoDB using Mongoose.
-// It includes fields for email, name, and a hashed password.
-// The model is used for user authentication and registration in the application.
 const mongoose = require('mongoose');
+const bcrypt   = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-  login:     { type: String, required: true, unique: true },
+  login:     { type: String, required: true, unique: true },  // your “username”
   password:  { type: String, required: true },
-  firstName: { type: String, required: true},
-  lastName: { type: String, required: true},
-  email:
-  { 
-    type: String, 
-    required: true, 
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/.+@.+\..+/, 'Please enter a valid email address']
-  },
-}, { collection: 'Users' });
+  firstName: { type: String, required: true },
+  lastName:  { type: String, required: true },
+  email:     { type: String, required: true, unique: true },
+});
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+// Helper to compare passwords
+userSchema.methods.comparePassword = function(candidate) {
+  return bcrypt.compare(candidate, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema, 'Users');
-
-// This code defines a Mongoose schema for a User model.
-// The schema includes fields for login, password, firstName, and lastName.
-// The login field is required and must be unique, while the password field is also required.
-// The firstName and lastName fields are optional.
-// The model is then exported for use in other parts of the application.

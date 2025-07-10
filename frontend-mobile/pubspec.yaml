@@ -10,5 +10,9 @@ dependencies:
   http: ^0.13.5       # for backend API calls
   provider: ^6.0.5    # state management
   google_maps_flutter: ^2.2.2 # map integration
+  image_picker: ^1.1.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
 
 # assets, fonts etc.

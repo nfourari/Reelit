@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -13,6 +15,7 @@ class HomePage extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16),
               height: 60,
+              // ignore: deprecated_member_use
               color: Colors.white.withOpacity(0.9),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,7 +143,7 @@ class HomePage extends StatelessWidget {
                                   side: BorderSide(color: Colors.white30),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ).copyWith(
-                                  foregroundColor: MaterialStateProperty.all(Colors.white),
+                                  foregroundColor: WidgetStateProperty.all(Colors.white),
                                 ),
                               ),
                             ],
@@ -305,7 +308,7 @@ class HomePage extends StatelessWidget {
                           side: BorderSide(color: Colors.white30),
                           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                         ).copyWith(
-                          foregroundColor: MaterialStateProperty.all(Colors.white),
+                          foregroundColor: WidgetStateProperty.all(Colors.white),
                         ),
                       ),
                     ],
