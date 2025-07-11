@@ -1,7 +1,9 @@
 # Shuzzy
 
-*Visit our website:* http://www.shuzzy.top
-*Frontend code is listed within a different repository located here https://github.com/nfourari/Shuzzy-Frontend
+**Visit our website:* http://www.shuzzy.top
+
+*Frontend code is listed within a different repository located here:* https://github.com/nfourari/Shuzzy-Frontend
+
 
 ## Application Overview
 
