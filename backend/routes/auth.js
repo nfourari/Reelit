@@ -4,6 +4,9 @@ const express = require('express');
 const router = express.Router();
 const User   = require('../models/User');
 const jwt    = require('jsonwebtoken'); 
+const axios = require('axios');              // For making HTTP requests
+const Catch = require('../models/Catch');    // Mongoose model for user fish catches
+
 
 
 
@@ -53,6 +56,52 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
+
+// Add a new fish catch
+router.post('/catch', async (req, res) => {
+  const { userId, species, weight, length, photoUrl, location } = req.body;
+  try {
+    const catchRecord = await Catch.create({
+      userId,
+      species,
+      weight,
+      length,
+      photoUrl,
+      location,
+      caughtAt: new Date()
+    });
+    res.status(201).json({ success: true, data: catchRecord });
+  } catch (err) {
+    console.error('Error adding catch:', err);
+    res.status(500).json({ success: false, message: 'Server error adding catch' });
+  }
+});
+
+// Get fish species info
+router.get('/fish/:species', async (req, res) => {
+  const { species } = req.params;
+  try {
+    const apiUrl = `https://fishbase.ropensci.org/species?genus_species=${encodeURIComponent(species)}`;
+    const response = await axios.get(apiUrl);
+    const data = response.data;
+    if (!data || !data.data || data.data.length === 0) {
+      return res.status(404).json({ success: false, message: 'Species not found' });
+    }
+    const fish = data.data[0];
+    res.json({
+      success: true,
+      species: fish.Genus + ' ' + fish.Species,
+      commonName: fish.FBname,
+      status: fish.IUCN,
+      habitat: fish.Habitats,
+      distribution: fish.Distribution
+    });
+  } catch (err) {
+    console.error('Error fetching fish info:', err);
+    res.status(500).json({ success: false, message: 'Error contacting fish database' });
+  }
+});
+
 
 
 module.exports = router;
