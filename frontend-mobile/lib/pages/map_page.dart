@@ -1,230 +1,245 @@
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 class MapPage extends StatefulWidget {
+  const MapPage({Key? key}) : super(key: key);
+
   @override
-  _MapPageState createState() => _MapPageState();
+  State<MapPage> createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
-  double _distance = 50;
-  Map<String, bool> _access = {
-    'public': true,
-    'private': true,
-    'trespassing': false
-  };
-  List<String> _speciesSelected = [];
 
-  final List<Map<String, dynamic>> _spots = [
-    {
-      'id': 1,
-      'name': 'Lake Tohopekaliga',
-      'lat': 28.2,
-      'lng': -81.4,
-      'species': ['Largemouth Bass', 'Bluegill', 'Crappie'],
-      'access': 'public'
-    },
-    {
-      'id': 2,
-      'name': 'Mosquito Lagoon',
-      'lat': 28.7,
-      'lng': -80.8,
-      'species': ['Redfish', 'Snook', 'Trout'],
-      'access': 'public'
-    },
-    {
-      'id': 3,
-      'name': 'Butler Chain of Lakes',
-      'lat': 28.4,
-      'lng': -81.5,
-      'species': ['Largemouth Bass', 'Bluegill', 'Catfish'],
-      'access': 'private'
-    },
-    {
-      'id': 4,
-      'name': 'Johns Lake',
-      'lat': 28.5,
-      'lng': -81.6,
-      'species': ['Largemouth Bass', 'Crappie', 'Bluegill'],
-      'access': 'public'
-    },
-    {
-      'id': 5,
-      'name': 'Secret Pond',
-      'lat': 28.3,
-      'lng': -81.3,
-      'species': ['Trophy Bass', 'Catfish'],
-      'access': 'trespassing'
-    },
-  ];
+  // Location and distance
+  LatLng _center = LatLng(28.4, -81.5); // Default: Orlando
+  double _distance = 15;
+  bool _locationDenied = false;
 
-  bool _filterSpot(Map<String, dynamic> spot) {
-    if (!(_access[spot['access']] ?? false)) return false;
-    if (_speciesSelected.isNotEmpty &&
-        !(spot['species'] as List).any((s) => _speciesSelected.contains(s))) {
-      return false;
+  // Data
+  List<Map<String, dynamic>> _spots = [];
+  List<String> _invasiveSpecies = [];
+  List<String> _nativeSpecies = [];
+  List<String> _selectedSpecies = [];
+
+  // Load JSON files from assets
+  Future<void> _loadData() async {
+    final lakesJson = await rootBundle.loadString('assets/data/lakes.json');
+    final speciesJson =
+        await rootBundle.loadString('assets/data/fish_species.json');
+
+    final lakes = List<Map<String, dynamic>>.from(json.decode(lakesJson));
+    final speciesList =
+        List<Map<String, dynamic>>.from(json.decode(speciesJson));
+
+    final invasive = speciesList
+        .where((s) => s['status'] == 'invasive')
+        .map((s) => s['species'].toString())
+        .toList();
+
+    final native = speciesList
+        .where((s) => s['status'] == 'native')
+        .map((s) => s['species'].toString())
+        .toList();
+
+    setState(() {
+      _spots = lakes;
+      _invasiveSpecies = invasive;
+      _nativeSpecies = native;
+    });
+  }
+
+  // Get user location
+  Future<void> _getUserLocation() async {
+    final location = Location();
+    final hasPermission = await location.hasPermission();
+    if (hasPermission == PermissionStatus.denied) {
+      final permissionResult = await location.requestPermission();
+      if (permissionResult != PermissionStatus.granted) {
+        setState(() => _locationDenied = true);
+        return;
+      }
     }
-    return true;
+
+    final locData = await location.getLocation();
+    if (locData.latitude != null && locData.longitude != null) {
+      setState(() {
+        _center = LatLng(locData.latitude!, locData.longitude!);
+      });
+    }
+  }
+
+  double _calculateDistance(LatLng a, LatLng b) {
+    const r = 3958.8; // miles
+    final dLat = (b.latitude - a.latitude) * (pi / 180);
+    final dLng = (b.longitude - a.longitude) * (pi / 180);
+    final lat1 = a.latitude * (pi / 180);
+    final lat2 = b.latitude * (pi / 180);
+
+    final aComp = (sin(dLat / 2) * sin(dLat / 2)) +
+        (cos(lat1) * cos(lat2) * sin(dLng / 2) * sin(dLng / 2));
+    final c = 2 * atan2(sqrt(aComp), sqrt(1 - aComp));
+
+    return r * c;
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  Set<Marker> _buildMarkers() {
+    final markers = <Marker>{};
+    
+    for (final spot in _spots) {
+      final lat = _toDouble(spot['lat']);
+      final lng = _toDouble(spot['lng']);
+      
+      // Skip invalid coordinates
+      if (lat == null || lng == null) continue;
+      
+      final spotLatLng = LatLng(lat, lng);
+      final dist = _calculateDistance(_center, spotLatLng);
+      
+      final speciesInSpot = (spot['species'] as List?)?.cast<String>() ?? [];
+      final matchesSpecies = _selectedSpecies.isEmpty ||
+          speciesInSpot.any(_selectedSpecies.contains);
+      
+      if (dist <= _distance && matchesSpecies) {
+        markers.add(
+          Marker(
+            markerId: MarkerId(spot['id']?.toString() ?? '${lat}_${lng}'),
+            position: spotLatLng,
+            infoWindow: InfoWindow(title: spot['name']?.toString() ?? 'Unknown'),
+          ),
+        );
+      }
+    }
+    
+    return markers;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData().catchError((e) {
+      debugPrint("Error loading data: $e");
+    });
+    _getUserLocation().catchError((e) {
+      debugPrint("Location error: $e");
+      setState(() => _locationDenied = true);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLoaded = _spots.isNotEmpty;
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFFF3E0), Color(0xFFE0F7FA)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Map Explorer',
-                  style: theme.textTheme.headlineLarge,
-                ),
-              ),
-              Expanded(
-                child: Row(
-                  children: [
-                    // Filters column
-                    Container(
-                      width: 200,
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.all(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(
+        title: Text('Map Explorer'),
+        centerTitle: true,
+      ),
+      body: isLoaded
+          ? Column(
+              children: [
+                if (_locationDenied)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.yellow[100],
+                    child: Text(
+                      "Location access denied. Showing results from Orlando.",
+                      style: TextStyle(color: Colors.orange[900]),
+                    ),
+                  ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Filter UI
+                      Container(
+                        width: 220,
+                        padding: const EdgeInsets.all(8),
+                        child: ListView(
                           children: [
-                            Text(
-                              'Species',
-                              style: theme.textTheme.titleMedium,
-                            ),
-                            ...['Largemouth Bass', 'Bluegill', 'Crappie', 'Redfish', 'Snook', 'Trout', 'Catfish', 'Trophy Bass']
-                                .map(
-                                  (sp) => CheckboxListTile(
-                                    title: Text(sp),
-                                    value: _speciesSelected.contains(sp),
-                                    onChanged: (v) {
-                                      setState(() {
-                                        if (v == true) {
-                                          _speciesSelected.add(sp);
-                                        } else {
-                                          _speciesSelected.remove(sp);
-                                        }
-                                      });
-                                    },
-                                  ),
-                                )
-                                .toList(),
+                            Text('Invasive Species',
+                                style: theme.textTheme.titleMedium),
+                            ..._invasiveSpecies.map((s) => CheckboxListTile(
+                                  title: Text(s),
+                                  value: _selectedSpecies.contains(s),
+                                  onChanged: (v) {
+                                    setState(() {
+                                      v == true
+                                          ? _selectedSpecies.add(s)
+                                          : _selectedSpecies.remove(s);
+                                    });
+                                  },
+                                )),
                             Divider(),
-                            Text(
-                              'Access',
-                              style: theme.textTheme.titleMedium,
-                            ),
-                            ..._access.keys.map(
-                              (k) => CheckboxListTile(
-                                title: Row(
-                                  children: [
-                                    Icon(
-                                      k == 'public' ? Icons.lock_open : Icons.lock,
-                                      color: theme.primaryColor,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(k),
-                                  ],
-                                ),
-                                value: _access[k],
-                                onChanged: (v) {
-                                  setState(() {
-                                    _access[k] = v ?? false;
-                                  });
-                                },
-                              ),
-                            ),
+                            Text('Native Species',
+                                style: theme.textTheme.titleMedium),
+                            ..._nativeSpecies.map((s) => CheckboxListTile(
+                                  title: Text(s),
+                                  value: _selectedSpecies.contains(s),
+                                  onChanged: (v) {
+                                    setState(() {
+                                      v == true
+                                          ? _selectedSpecies.add(s)
+                                          : _selectedSpecies.remove(s);
+                                    });
+                                  },
+                                )),
                             Divider(),
-                            Text(
-                              'Distance (${_distance.toInt()} mi)',
-                              style: theme.textTheme.titleMedium,
-                            ),
+                            Text('Distance: ${_distance.toInt()} mi'),
                             Slider(
-                              min: 0,
-                              max: 100,
-                              divisions: 20,
+                              min: 1,
+                              max: 25,
+                              divisions: 24,
                               value: _distance,
-                              onChanged: (v) => setState(() => _distance = v),
+                              label: '${_distance.toInt()} mi',
+                              onChanged: (val) {
+                                setState(() {
+                                  _distance = val;
+                                });
+                              },
+                            ),
+                            OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedSpecies.clear();
+                                  _distance = 15;
+                                });
+                              },
+                              child: Text("Reset Filters"),
                             ),
                           ],
                         ),
                       ),
-                    ),
 
-                    // Map and list
-                    Expanded(
-                      child: Column(
-                        children: [
-                          // Map view
-                          Expanded(
-                            flex: 2,
-                            child: GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target: LatLng(28.4, -81.5),
-                                zoom: 10,
-                              ),
-                              onMapCreated: (c) => _mapController = c,
-                              markers: _spots
-                                  .where(_filterSpot)
-                                  .map(
-                                    (s) => Marker(
-                                      markerId: MarkerId(s['id'].toString()),
-                                      position: LatLng(s['lat'], s['lng']),
-                                      infoWindow: InfoWindow(title: s['name']),
-                                    ),
-                                  )
-                                  .toSet(),
-                            ),
+                      // Map
+                      Expanded(
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: _center,
+                            zoom: 10,
                           ),
-                          // List view
-                          Expanded(
-                            flex: 1,
-                            child: ListView.builder(
-                              padding: EdgeInsets.all(8),
-                              itemCount: _spots.where(_filterSpot).length,
-                              itemBuilder: (ctx, idx) {
-                                final s = _spots.where(_filterSpot).toList()[idx];
-                                return Card(
-                                  child: ListTile(
-                                    leading: Icon(
-                                      Icons.pin_drop,
-                                      color: theme.primaryColor,
-                                    ),
-                                    title: Text(s['name']),
-                                    subtitle: Text((s['species'] as List).join(', ')),
-                                    onTap: () => _mapController?.animateCamera(
-                                      CameraUpdate.newLatLng(
-                                        LatLng(s['lat'], s['lng']),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                          onMapCreated: (c) => _mapController = c,
+                          markers: _buildMarkers(),
+                          myLocationEnabled: true,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
+              ],
+            )
+          : Center(child: CircularProgressIndicator()),
     );
   }
 }

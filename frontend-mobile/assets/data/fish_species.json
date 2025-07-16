@@ -1,0 +1,17 @@
+[
+  {
+    "id": "largemouth_bass",
+    "name": "Largemouth Bass",
+    "icon": "bass_icon.png"
+  },
+  {
+    "id": "rainbow_trout",
+    "name": "Rainbow Trout",
+    "icon": "trout_icon.png"
+  },
+  {
+    "id": "bluegill",
+    "name": "Bluegill",
+    "icon": "bluegill_icon.png"
+  }
+]

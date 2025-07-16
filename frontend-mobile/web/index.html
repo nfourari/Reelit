@@ -17,6 +17,7 @@
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://maps.googleapis.com https://maps.gstatic.com 'unsafe-eval' 'unsafe-inline';">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
@@ -29,10 +30,24 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>frontend</title>
+  <title>ShuzzyMobile</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAv8iV6Q-KbJGHLl4dFno-Y4bHGczyQfks"></script>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script src="flutter_bootstrap.js" async>
+    window.onload = function() {
+      // Initialize Google Maps JS SDK
+      if (typeof google !== 'undefined') {
+        google.maps.importLibrary("maps");
+      }
+      
+      // Initialize Flutter app
+      let script = document.createElement('script');
+      script.src = 'main.dart.js';
+      script.type = 'application/javascript';
+      document.body.append(script);
+    };
+  </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
@@ -15,17 +16,34 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
     final api = context.read<ApiService>();
-    final res = await api.login(_emailCtrl.text, _passCtrl.text);
-    setState(() => _isLoading = false);
+    try {
+      final res = await api
+          .login(_emailCtrl.text, _passCtrl.text)
+          .timeout(Duration(seconds: 10));
 
-    if (res['success'] == true) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
+      setState(() => _isLoading = false);
+
+      if (res['success'] == true) {
+        // Navigate to HomeShell instead of old /dashboard
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res['message'] ?? 'Invalid credentials'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } on TimeoutException catch (_) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res['message'] ?? 'Invalid credentials'),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text('Server did not respond. Try again later.')),
+      );
+    } catch (e, st) {
+      setState(() => _isLoading = false);
+      debugPrint('🔥 LOGIN ERROR 🔥 $e\n$st');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network/Server error: $e')),
       );
     }
   }

@@ -1,18 +1,36 @@
 name: shuzzy_flutter
 description: Flutter client for Shuzzy2.0 MERN backend
 publish_to: 'none'
+
 environment:
   sdk: ">=2.17.0 <3.0.0"
+
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  http: ^1.4.0       # for backend API calls
-  provider: ^6.0.5    # state management
-  google_maps_flutter: ^2.2.2 # map integration
+  http: ^1.4.0
+  provider: ^6.0.5
+  google_maps_flutter: ^2.6.0
+  location: ^5.0.3
   image_picker: ^1.1.2
+  lucide_icons: ^0.257.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^3.0.1
 
-# assets, fonts etc.
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/data/lakes.json
+    - assets/data/fish_species.json
+    - assets/data/spots.json
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700

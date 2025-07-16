@@ -1,0 +1,18 @@
+[
+  {
+    "id": "spot1",
+    "name": "Lake Serenity",
+    "latitude": 28.6139,
+    "longitude": -81.2089,
+    "species": ["largemouth_bass", "bluegill"],
+    "rating": 4.5
+  },
+  {
+    "id": "spot2",
+    "name": "Trout Creek",
+    "latitude": 28.6012,
+    "longitude": -81.2101,
+    "species": ["rainbow_trout"],
+    "rating": 4.0
+  }
+]
