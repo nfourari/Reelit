@@ -37,7 +37,8 @@ interface FishingSpot {
 }
 
 // Define libraries array outside component to prevent re-renders
-const libraries = ['places', 'geometry'];
+import type { Libraries } from '@react-google-maps/api';
+const libraries: Libraries = ['places', 'geometry'];
 
 const MapExplorer = () => {
   const [fishingSpots] = useState<FishingSpot[]>(fishingSpotsData.map((spot, index) => ({ ...spot, id: index + 1 })));
@@ -278,7 +279,7 @@ const MapExplorer = () => {
                     </h3>
                     <div className="space-y-2">
                       <Slider
-                        defaultValue={[filters.distance]}
+                        value={[filters.distance]}
                         max={25}
                         step={1}
                         onValueChange={handleDistanceChange}

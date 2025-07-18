@@ -2,7 +2,7 @@
 // All catch-related database work lives here: creating a new catch (& increment user catch count)
 // and listing all of a user's catches
 
-import { TextQueryHandler } from 'puppeteer';
+// import { TextQueryHandler } from 'puppeteer';
 import Catch from '../models/Catch.js';
 import  User  from '../models/User.js';
 
