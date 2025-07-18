@@ -1,30 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Map, 
   Home, 
   Plus, 
-  Users, 
   User, 
   LogOut, 
-  Bell, 
-  TreePalm 
+  TreePalm,
+  Menu,
+  X
 } from 'lucide-react';
 
 const Navigation = () => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const handleLogout = () => {
     // Implement logout functionality here
     navigate('/');
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <nav className="bg-white/90 backdrop-blur-sm border-b border-orange-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center h-16">
+          <div className="flex-shrink-0 flex items-center space-x-2">
             <Link to="/">
               <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
                 <TreePalm className="w-5 h-5 text-white" />
@@ -35,7 +40,7 @@ const Navigation = () => {
             </Link>
           </div>
           
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex flex-1 justify-center items-center space-x-6">
             <Link to="/dashboard">
               <Button variant="ghost" className="text-slate-600 hover:text-primary">
                 <Home className="w-4 h-4 mr-2" />
@@ -54,26 +59,15 @@ const Navigation = () => {
                 Add Catch
               </Button>
             </Link>
-            <Link to="/social-feed">
-              <Button variant="ghost" className="text-slate-600 hover:text-primary">
-                <Users className="w-4 h-4 mr-2" />
-                Social Feed
-              </Button>
-            </Link>
             <Link to="/profile">
               <Button variant="ghost" className="text-slate-600 hover:text-primary">
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </Button>
             </Link>
-            <Link to="/notifications">
-              <Button variant="ghost" className="text-slate-600 hover:text-primary relative">
-                <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  3
-                </span>
-              </Button>
-            </Link>
+          </div>
+          
+          <div className="hidden md:flex items-center ml-auto">
             <Button 
               variant="ghost" 
               className="text-slate-600 hover:text-primary"
@@ -85,43 +79,77 @@ const Navigation = () => {
           </div>
           
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <Button variant="ghost" className="text-slate-600">
+          <div className="md:hidden ml-auto flex items-center">
+            <Button 
+              variant="ghost" 
+              className="text-slate-600"
+              onClick={toggleMobileMenu}
+            >
               <span className="sr-only">Open main menu</span>
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
       </div>
       
       {/* Mobile menu, show/hide based on menu state */}
-      <div className="hidden md:hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link to="/dashboard" className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50">
-            Dashboard
+      <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-b border-orange-100 shadow-sm">
+          <Link 
+            to="/dashboard" 
+            className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div className="flex items-center">
+              <Home className="w-4 h-4 mr-2" />
+              Dashboard
+            </div>
           </Link>
-          <Link to="/map-explorer" className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50">
-            Map Explorer
+          <Link 
+            to="/map-explorer" 
+            className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div className="flex items-center">
+              <Map className="w-4 h-4 mr-2" />
+              Map Explorer
+            </div>
           </Link>
-          <Link to="/add-catch" className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50">
-            Add Catch
+          <Link 
+            to="/add-catch" 
+            className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div className="flex items-center">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Catch
+            </div>
           </Link>
-          <Link to="/social-feed" className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50">
-            Social Feed
-          </Link>
-          <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50">
-            Profile
-          </Link>
-          <Link to="/notifications" className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50">
-            Notifications
+          <Link 
+            to="/profile" 
+            className="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div className="flex items-center">
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </div>
           </Link>
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              handleLogout();
+            }}
             className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-primary hover:bg-orange-50"
           >
-            Logout
+            <div className="flex items-center">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </div>
           </button>
         </div>
       </div>

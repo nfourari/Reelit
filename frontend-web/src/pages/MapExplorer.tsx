@@ -1,19 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { MapPin, Filter, Fish, Lock, Unlock, Users, AlertTriangle, Skull } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import {
-  GoogleMap,
-  Marker,
-  InfoWindow,
-  useJsApiLoader
-} from '@react-google-maps/api'
+import { 
+  MapPin, Filter, Fish, Lock, Unlock, Users, 
+  AlertTriangle, Skull, RefreshCw, Map 
+} from 'lucide-react';
+import { useJsApiLoader } from '@react-google-maps/api';
+import MapWrapper from '@/components/MapWrapper';
+import fishingSpotsData from '@/data/lakes.json';
+import speciesData from '@/data/fish_species.json';
 
 const API_KEY = 'AIzaSyAv8iV6Q-KbJGHLl4dFno-Y4bHGczyQfks';
 
@@ -29,91 +28,63 @@ const centerDefault = {
   lng: -81.5
 };
 
+interface FishingSpot {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  species: string[];
+}
+
+// Define libraries array outside component to prevent re-renders
+const libraries = ['places', 'geometry'];
+
 const MapExplorer = () => {
-  // Mock data for fishing spots
-  const fishingSpots = [
-    {
-      id: 1,
-      name: 'Lake Tohopekaliga',
-      lat: 28.2,
-      lng: -81.4,
-      species: ['Largemouth Bass', 'Bluegill', 'Black Crappie (Speckled Perch)'],
-      access: 'public',
-      popularity: 4.5
-    },
-    {
-      id: 2,
-      name: 'Mosquito Lagoon',
-      lat: 28.7,
-      lng: -80.8,
-      species: ['Atlantic Sturgeon', 'Smalltooth Sawfish', 'Florida Gar'],
-      access: 'public',
-      popularity: 4.8
-    },
-    {
-      id: 3,
-      name: 'Butler Chain of Lakes',
-      lat: 28.4,
-      lng: -81.5,
-      species: ['Largemouth Bass', 'Bluegill', 'Channel Catfish'],
-      access: 'private',
-      popularity: 4.2
-    },
-    {
-      id: 4,
-      name: 'Johns Lake',
-      lat: 28.5,
-      lng: -81.6,
-      species: ['Largemouth Bass', 'Black Crappie (Speckled Perch)', 'Bluegill'],
-      access: 'public',
-      popularity: 4.0
-    },
-    {
-      id: 5,
-      name: 'Secret Pond',
-      lat: 28.3,
-      lng: -81.3,
-      species: ['Blue Tilapia', 'Walking Catfish', 'Armored Catfish (Suckermouth)'],
-      access: 'private',
-      popularity: 4.9
-    }
-  ];
+  const [fishingSpots] = useState<FishingSpot[]>(fishingSpotsData.map((spot, index) => ({ ...spot, id: index + 1 })));
 
   // Filter state
   const [filters, setFilters] = useState({
     species: [],
-    access: {
-      public: true,
-      private: true
-    },
     distance: 15
   });
 
-  // Fish species organized by categories
-  const fishSpeciesCategories = {
-    endangered: [
-      'Atlantic Sturgeon',
-      'Smalltooth Sawfish'
-    ],
-    invasive: [
-      'Blue Tilapia',
-      'Armored Catfish (Suckermouth)',
-      'Walking Catfish'
-    ],
-    native: [
-      'Largemouth Bass',
-      'Bluegill',
-      'Redear Sunfish (Shellcracker)',
-      'Black Crappie (Speckled Perch)',
-      'Channel Catfish',
-      'Florida Gar',
-      'Bowfin (Mudfish)',
-      'Chain Pickerel'
-    ]
-  };
+  // User location state
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Define fish species categories
+  const fishSpeciesCategories = useMemo(() => {
+    const invasive = speciesData.filter(s => s.status === 'invasive').map(s => s.species);
+    const native = speciesData.filter(s => s.status === 'native').map(s => s.species);
+
+    return {
+      invasive: invasive.sort(),
+      native: native.sort(),
+    };
+  }, []);
+
+  // Get user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          setLocationError("Location access denied. Using default location.");
+          console.error("Geolocation error:", error);
+        }
+      );
+    } else {
+      setLocationError("Geolocation not supported. Using default location.");
+    }
+  }, []);
 
   // Handle species filter change
-  const handleSpeciesChange = (species) => {
+  const handleSpeciesChange = (species: string) => {
     setFilters(prev => {
       const newSpecies = prev.species.includes(species)
         ? prev.species.filter(s => s !== species)
@@ -123,44 +94,89 @@ const MapExplorer = () => {
     });
   };
 
-  // Handle access filter change
-  const handleAccessChange = (access) => {
-    setFilters(prev => ({
-      ...prev,
-      access: {
-        ...prev.access,
-        [access]: !prev.access[access]
-      }
-    }));
-  };
-
   // Handle distance filter change
-  const handleDistanceChange = (value) => {
+  const handleDistanceChange = (value: number[]) => {
     setFilters(prev => ({ ...prev, distance: value[0] }));
   };
 
-  // Maps functions
+  // Calculate distance between two points
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 3958.8; // Earth radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
-  const [selectedSpot, setSelectedSpot] = useState(null);
-
-  const filteredSpots = fishingSpots.filter(spot => {
-    if (filters.species.length > 0 && !spot.species.some(s => filters.species.includes(s))) return false;
-    if (!filters.access[spot.access]) return false;
-    return true;
-  });
-
-  const onLoad = useCallback(map => {
-    const bounds = new window.google.maps.LatLngBounds();
-    filteredSpots.forEach(({ lat, lng }) => bounds.extend({ lat, lng }));
-    map.fitBounds(bounds);
-  }, [filteredSpots]);
+  // Filter spots based on criteria
+  const filteredSpots = useMemo(() => {
+    return fishingSpots.filter(spot => {
+      // Species filter
+      if (filters.species.length > 0 && 
+          !spot.species.some(species => filters.species.includes(species))) {
+        return false;
+      }
+      
+      // Distance filter (if user location available)
+      if (userLocation) {
+        const distance = calculateDistance(
+          userLocation.lat, 
+          userLocation.lng,
+          spot.lat,
+          spot.lng
+        );
+        if (distance > filters.distance) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [filters, userLocation, fishingSpots]);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: API_KEY
-  })
+    googleMapsApiKey: API_KEY,
+    libraries: libraries
+  });
 
-  if (loadError) return <div>Map load error</div>
-  if (!isLoaded)  return <div>Loading map…</div>
+  // Debug logging
+  console.log("MapExplorer state:", { 
+    isLoaded, 
+    hasLoadError: !!loadError, 
+    filteredSpotsCount: filteredSpots?.length || 0 
+  });
+  
+  // Loading and error states
+  if (loadError) return (
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-cyan-50">
+      <Navigation />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="h-[600px] flex flex-col items-center justify-center bg-red-50 text-red-700 p-4 rounded-lg">
+          <Map className="w-16 h-16 mb-4 text-red-500" />
+          <h2 className="text-2xl font-bold mb-2">Map Load Error</h2>
+          <p className="text-center">Failed to load Google Maps. Please check your internet connection.</p>
+          <p className="mt-4 text-sm text-red-600">{loadError.message}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!isLoaded) return (
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-cyan-50">
+      <Navigation />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="h-[600px] flex flex-col items-center justify-center">
+          <RefreshCw className="animate-spin w-16 h-16 text-cyan-600 mb-4" />
+          <h2 className="text-2xl font-bold text-slate-800">Loading Map...</h2>
+          <p className="text-slate-600 mt-2">This may take a few moments</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-cyan-50">
@@ -168,6 +184,21 @@ const MapExplorer = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <h1 className="text-3xl font-bold text-slate-800 mb-6">Map Explorer</h1>
+        
+        {locationError && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  {locationError} Showing all spots within {filters.distance} miles of Orlando.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters */}
@@ -186,31 +217,6 @@ const MapExplorer = () => {
                     <Fish className="w-4 h-4 mr-2" />
                     Fish Species
                   </h3>
-                  
-                  {/* Endangered Species */}
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-red-600 mb-2 flex items-center">
-                      <AlertTriangle className="w-3 h-3 mr-1" />
-                      Endangered Species
-                    </h4>
-                    <div className="space-y-2">
-                      {fishSpeciesCategories.endangered.map((species) => (
-                        <div key={species} className="flex items-center">
-                          <Checkbox 
-                            id={`species-${species}`} 
-                            checked={filters.species.includes(species)}
-                            onCheckedChange={() => handleSpeciesChange(species)}
-                          />
-                          <Label 
-                            htmlFor={`species-${species}`}
-                            className="ml-2 text-sm font-medium leading-none cursor-pointer"
-                          >
-                            {species}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                   
                   {/* Invasive Species */}
                   <div className="mb-4">
@@ -263,112 +269,57 @@ const MapExplorer = () => {
                   </div>
                 </div>
                 
-                {/* Access Rules Filter */}
-                <div>
-                  <h3 className="text-md font-semibold text-slate-800 mb-3 flex items-center">
-                    <Users className="w-4 h-4 mr-2" />
-                    Access Rules
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <Checkbox 
-                        id="access-public" 
-                        checked={filters.access.public}
-                        onCheckedChange={() => handleAccessChange('public')}
-                      />
-                      <Label 
-                        htmlFor="access-public"
-                        className="ml-2 text-sm font-medium leading-none cursor-pointer flex items-center"
-                      >
-                        <Unlock className="w-3 h-3 mr-1 text-green-600" />
-                        Public
-                      </Label>
-                    </div>
-                    <div className="flex items-center">
-                      <Checkbox 
-                        id="access-private" 
-                        checked={filters.access.private}
-                        onCheckedChange={() => handleAccessChange('private')}
-                      />
-                      <Label 
-                        htmlFor="access-private"
-                        className="ml-2 text-sm font-medium leading-none cursor-pointer flex items-center"
-                      >
-                        <Lock className="w-3 h-3 mr-1 text-orange-600" />
-                        Private
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                
                 {/* Distance Filter */}
-                <div>
-                  <h3 className="text-md font-semibold text-slate-800 mb-3 flex items-center">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Distance
-                  </h3>
-                  <div className="space-y-4 px-1">
-                    <Slider
-                      defaultValue={[filters.distance]}
-                      max={25}
-                      step={1}
-                      onValueChange={handleDistanceChange}
-                    />
-                    <div className="flex justify-between">
-                      <span className="text-sm text-slate-600">0 mi</span>
-                      <span className="text-sm font-medium text-primary">{filters.distance} mi</span>
-                      <span className="text-sm text-slate-600">25 mi</span>
+                {userLocation && (
+                  <div>
+                    <h3 className="text-md font-semibold text-slate-800 mb-3 flex items-center">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Distance
+                    </h3>
+                    <div className="space-y-2">
+                      <Slider
+                        defaultValue={[filters.distance]}
+                        max={25}
+                        step={1}
+                        onValueChange={handleDistanceChange}
+                      />
+                      <div className="flex justify-between">
+                        <span className="text-sm text-slate-600">0 mi</span>
+                        <span className="text-sm font-medium text-primary">{filters.distance} mi</span>
+                        <span className="text-sm text-slate-600">25 mi</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+                
+                {/* Reset Filters Button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4"
+                  onClick={() => setFilters({
+                    species: [],
+                    distance: 15
+                  })}
+                >
+                  Reset Filters
+                </Button>
               </CardContent>
             </Card>
           </div>
           
           {/* Map */}
-          <div className="lg:col-span-3">
-            <Card className="h-[600px] overflow-hidden">
-              <CardContent className="p-0 h-full relative">
-                <GoogleMap
-                  mapContainerStyle={containerStyle}
-                  center={centerDefault}
-                  zoom={10}
-                  onLoad={onLoad}
-                >
-                  {filteredSpots.map(spot => (
-                    <Marker
-                      key={spot.id}
-                      position={{ lat: spot.lat, lng: spot.lng }}
-                      onClick={() => setSelectedSpot(spot)}
-                      icon={{
-                        path: window.google.maps.SymbolPath.CIRCLE,
-                        scale: 8,
-                        fillColor:
-                          spot.access === 'public'
-                            ? 'green'
-                            : spot.access === 'private'
-                            ? 'orange'
-                            : 'red',
-                        fillOpacity: 0.8,
-                        strokeWeight: 1
-                      }}
-                    />
-                  ))}
-
-                  {selectedSpot && (
-                    <InfoWindow
-                      position={{ lat: selectedSpot.lat, lng: selectedSpot.lng }}
-                      onCloseClick={() => setSelectedSpot(null)}
-                    >
-                      <div>
-                        <h3>{selectedSpot.name}</h3>
-                        {/* … */}
-                      </div>
-                    </InfoWindow>
-                  )}
-                </GoogleMap>
-              </CardContent>
-            </Card>
+          <div className="lg:col-span-3 h-[600px] rounded-lg overflow-hidden shadow-lg">
+            {isLoaded ? (
+              <MapWrapper
+                center={userLocation || centerDefault}
+                spots={filteredSpots}
+                userLocation={userLocation}
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-slate-100">
+                <RefreshCw className="animate-spin w-8 h-8 text-cyan-600" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -376,4 +327,4 @@ const MapExplorer = () => {
   );
 };
 
-export default MapExplorer; 
+export default MapExplorer;

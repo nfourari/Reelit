@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Map, LogIn, User, Users, Plus, TreePalm, Sun, Fish } from 'lucide-react';
+import { Map, LogIn, User, Plus, TreePalm, Sun, Fish } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -65,14 +65,18 @@ const Index = () => {
             Discover Orlando's best fishing spots, from Lake Apopka to the Butler Chain of Lakes
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animation-delay-400">
-            <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-lg px-8 py-4">
-              <Map className="w-5 h-5 mr-2" />
-              Explore Florida Spots
-            </Button>
-            <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4">
-              <TreePalm className="w-5 h-5 mr-2" />
-              Join Florida Anglers
-            </Button>
+            <Link to="/login">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-lg px-8 py-4">
+                <Map className="w-5 h-5 mr-2" />
+                Explore Florida Spots
+              </Button>
+            </Link>
+            <Link to="/signup">
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4">
+                <TreePalm className="w-5 h-5 mr-2" />
+                Start Tracking Catches
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -85,7 +89,7 @@ const Index = () => {
               Everything You Need to Fish Florida Waters
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              From Orlando's hidden gems to Central Florida lakes, discover the best fishing with local expertise
+              From Orlando's hidden gems to Central Florida lakes, discover the best fishing with expert data
             </p>
           </div>
           
@@ -97,7 +101,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-slate-800 mb-4">Florida Fishing Spots</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Discover Orlando lakes, Kissimmee Chain, and secret Florida spots with GPS coordinates and local tips.
+                  Discover Orlando lakes, Kissimmee Chain, and secret Florida spots with GPS coordinates and expert tips.
                 </p>
               </CardContent>
             </Card>
@@ -119,9 +123,9 @@ const Index = () => {
                 <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Sun className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-4">Florida Weather & Tides</h3>
+                <h3 className="text-2xl font-bold text-slate-800 mb-4">Florida Weather Data</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Get Orlando weather updates, tide charts for coastal trips, and the best fishing times for Florida waters.
+                  Get Orlando weather updates and the best fishing times for Florida waters based on conditions.
                 </p>
               </CardContent>
             </Card>
@@ -129,23 +133,23 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Community Section */}
+      {/* Personal Stats Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-orange-50 to-cyan-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
-              Recent Florida Catches
+              Track Your Florida Catches
             </h2>
             <p className="text-xl text-slate-600">
-              See what Orlando anglers are catching this week
+              Record and analyze your personal fishing statistics
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { angler: "Carlos M.", fish: "Largemouth Bass", weight: "8.2 lbs", location: "Lake Tohopekaliga", time: "2 hours ago" },
-              { angler: "Maria S.", fish: "Snook", weight: "12.5 lbs", location: "Mosquito Lagoon", time: "4 hours ago" },
-              { angler: "Tommy J.", fish: "Redfish", weight: "6.8 lbs", location: "Indian River", time: "1 day ago" }
+              { angler: "Michael R.", fish: "Largemouth Bass", weight: "8.2 lbs", location: "Lake Tohopekaliga" },
+              { angler: "Sarah J.", fish: "Snook", weight: "12.5 lbs", location: "Mosquito Lagoon" },
+              { angler: "David T.", fish: "Redfish", weight: "6.8 lbs", location: "Indian River" }
             ].map((catch_, index) => (
               <Card key={index} className="bg-white hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-6">
@@ -156,9 +160,6 @@ const Index = () => {
                       </div>
                       <span className="font-semibold text-slate-800">{catch_.angler}</span>
                     </div>
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                      {catch_.time}
-                    </Badge>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
@@ -188,61 +189,48 @@ const Index = () => {
             Ready to Explore Florida Waters?
           </h2>
           <p className="text-xl mb-8 text-orange-100">
-            Join Orlando's fishing community and discover Central Florida's hidden gems
+            Start tracking your catches and discover Central Florida's hidden gems
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-white text-primary hover:bg-orange-50 text-lg px-8 py-4"
-              >
+              <Button size="lg" className="bg-white text-primary hover:bg-orange-50 text-lg px-8 py-4">
                 <TreePalm className="w-5 h-5 mr-2" />
                 Start Fishing Florida
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4">
-              <Sun className="w-5 h-5 mr-2" />
-              Explore Orlando Spots
-            </Button>
+            <Link to="/login">
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4">
+                <Sun className="w-5 h-5 mr-2" />
+                Explore Orlando Spots
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-slate-800 text-white py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
-                  <TreePalm className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-2xl font-bold">Shuzzy+</span>
+        <div className="max-w-3xl mx-auto">
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
+                <TreePalm className="w-5 h-5 text-white" />
               </div>
-              <p className="text-slate-400 mb-4">
-                Orlando's premier fishing app for discovering Central Florida's best spots, from Lake Apopka to Lake Conway.
-              </p>
+              <span className="text-2xl font-bold">Shuzzy+</span>
             </div>
-            <div>
-              <h3 className="font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">GitHub</a></li>
-              </ul>
+            <p className="text-slate-400 mb-6 max-w-lg">
+              Orlando's premier fishing app for discovering Central Florida's best spots.
+            </p>
+            
+            <div className="flex items-center space-x-6 mb-8">
+              <Link to="/about" className="text-slate-400 hover:text-white transition-colors font-medium">About</Link>
+              <span className="text-slate-600">•</span>
+              <a href="https://github.com/mkultratech/Shuzzy2.0" className="text-slate-400 hover:text-white transition-colors font-medium" target="_blank">GitHub</a>
             </div>
           </div>
-          <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-400">
-            <p>&copy; 2024 Shuzzy+. All rights reserved.</p>
+          
+          <div className="border-t border-slate-700 mt-2 pt-6 text-center text-slate-400 text-sm">
+            <p>&copy; 2025 Shuzzy+. All rights reserved.</p>
           </div>
         </div>
       </footer>

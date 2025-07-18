@@ -19,7 +19,7 @@ const Login = () => {
 
     try {
       // Replace this URL with your actual backend endpoint
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

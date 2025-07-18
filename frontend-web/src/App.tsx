@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -10,10 +11,9 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import MapExplorer from "./pages/MapExplorer";
 import AddCatch from "./pages/AddCatch";
-import SocialFeed from "./pages/SocialFeed";
 import Profile from "./pages/Profile";
 import SpotDetails from "./pages/SpotDetails";
-import Notifications from "./pages/Notifications";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +23,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
@@ -31,9 +32,8 @@ const App = () => (
           <Route path="/map-explorer" element={<MapExplorer />} />
           <Route path="/spot/:id" element={<SpotDetails />} />
           <Route path="/add-catch" element={<AddCatch />} />
-          <Route path="/social-feed" element={<SocialFeed />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/about" element={<About />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Fish, MapPin, Camera, FileText, Scale, Ruler } from 'lucide-react';
 
 const AddCatch = () => {
@@ -20,19 +20,28 @@ const AddCatch = () => {
 
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Available fish species
-  const fishSpecies = [
-    'Largemouth Bass',
-    'Smallmouth Bass',
-    'Bluegill',
-    'Crappie',
-    'Catfish',
-    'Redfish',
-    'Snook',
-    'Trout',
-    'Tarpon',
-    'Peacock Bass'
-  ];
+  // Fish species organized by categories
+  const fishSpeciesCategories = {
+    endangered: [
+      'Atlantic Sturgeon',
+      'Smalltooth Sawfish'
+    ],
+    invasive: [
+      'Blue Tilapia',
+      'Armored Catfish (Suckermouth)',
+      'Walking Catfish'
+    ],
+    native: [
+      'Largemouth Bass',
+      'Bluegill',
+      'Redear Sunfish (Shellcracker)',
+      'Black Crappie (Speckled Perch)',
+      'Channel Catfish',
+      'Florida Gar',
+      'Bowfin (Mudfish)',
+      'Chain Pickerel'
+    ]
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,13 +75,15 @@ const AddCatch = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // TO DO
+  const handleSubmit = (event) => {
+    event.preventDefault();
     // Here you would typically send the data to your API
     console.log('Submitting catch data:', formData);
     alert('Catch logged successfully!');
     // Redirect to dashboard or profile would happen here
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-cyan-50">
@@ -101,11 +112,32 @@ const AddCatch = () => {
                     <SelectValue placeholder="Select fish species" />
                   </SelectTrigger>
                   <SelectContent>
-                    {fishSpecies.map((species) => (
-                      <SelectItem key={species} value={species}>
-                        {species}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      <SelectLabel className="text-red-600 font-semibold">Endangered Species</SelectLabel>
+                      {fishSpeciesCategories.endangered.map((species) => (
+                        <SelectItem key={species} value={species}>
+                          {species}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                    
+                    <SelectGroup>
+                      <SelectLabel className="text-amber-600 font-semibold">Invasive Species</SelectLabel>
+                      {fishSpeciesCategories.invasive.map((species) => (
+                        <SelectItem key={species} value={species}>
+                          {species}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                    
+                    <SelectGroup>
+                      <SelectLabel className="text-green-600 font-semibold">Non-endangered (Native) Species</SelectLabel>
+                      {fishSpeciesCategories.native.map((species) => (
+                        <SelectItem key={species} value={species}>
+                          {species}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
