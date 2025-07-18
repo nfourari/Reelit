@@ -5,7 +5,7 @@ class ApiService {
   // Replace with our actual backend URL
   static const String _baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://localhost:5001/api',
+    defaultValue: 'https://shuzzy.top/api',
   );
 
   // Optional: store auth token once logged in
@@ -64,20 +64,6 @@ class ApiService {
     return jsonDecode(resp.body);
   }
 
-  /// Retrieve pending requests (e.g. ride requests or whatever “requests” your app uses).
-  Future<List<dynamic>> getRequests() async {
-    final resp =
-        await http.get(Uri.parse('$_baseUrl/requests'), headers: _headers);
-    return jsonDecode(resp.body) as List<dynamic>;
-  }
-
-  /// Retrieve available offers.
-  Future<List<dynamic>> getOffers() async {
-    final resp =
-        await http.get(Uri.parse('$_baseUrl/offers'), headers: _headers);
-    return jsonDecode(resp.body) as List<dynamic>;
-  }
-
   /// Send a chat message to a user or in a room.
   Future<Map<String, dynamic>> sendMessage(
       String conversationId, String message) async {
@@ -107,6 +93,12 @@ class ApiService {
       headers: _headers,
       body: jsonEncode(settings),
     );
+    return jsonDecode(resp.body);
+  }
+
+  /// Get weather api
+  Future<Map<String, dynamic>> fetchWeather() async {
+    final resp = await http.get(Uri.parse('$_baseUrl/weather'), headers: _headers);
     return jsonDecode(resp.body);
   }
 

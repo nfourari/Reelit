@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -15,17 +18,34 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
     final api = context.read<ApiService>();
-    final res = await api.login(_emailCtrl.text, _passCtrl.text);
-    setState(() => _isLoading = false);
+    try {
+      final res = await api
+          .login(_emailCtrl.text, _passCtrl.text)
+          .timeout(const Duration(seconds: 10));
 
-    if (res['success'] == true) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
+      setState(() => _isLoading = false);
+
+      if (res['success'] == true) {
+        // Navigate to HomeShell instead of old /dashboard
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res['message'] ?? 'Invalid credentials'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } on TimeoutException catch (_) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res['message'] ?? 'Invalid credentials'),
-          backgroundColor: Colors.redAccent,
-        ),
+        const SnackBar(content: Text('Server did not respond. Try again later.')),
+      );
+    } catch (e, st) {
+      setState(() => _isLoading = false);
+      debugPrint('🔥 LOGIN ERROR 🔥 $e\n$st');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network/Server error: $e')),
       );
     }
   }
@@ -36,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -46,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -77,9 +97,9 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Icon(Icons.park, color: Colors.white),
+                                child: const Icon(Icons.park, color: Colors.white),
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Text(
                                 'Shuzzy+',
                                 style: theme.textTheme.headlineLarge?.copyWith(
@@ -87,19 +107,19 @@ class _LoginPageState extends State<LoginPage> {
                                   foreground: Paint()
                                     ..shader = LinearGradient(
                                       colors: [theme.primaryColor, theme.colorScheme.secondary],
-                                    ).createShader(Rect.fromLTWH(0, 0, 200, 0)),
+                                    ).createShader(const Rect.fromLTWH(0, 0, 200, 0)),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text('Welcome Back', style: theme.textTheme.titleLarge),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             'Sign in to your Orlando fishing account',
                             style: theme.textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
                           ),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           TextField(
                             controller: _emailCtrl,
                             keyboardType: TextInputType.emailAddress,
@@ -114,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
                             controller: _passCtrl,
                             obscureText: true,
@@ -129,21 +149,21 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: _isLoading ? null : _handleLogin,
                               icon: _isLoading
-                                  ? SizedBox(
+                                  ? const SizedBox(
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                     )
-                                  : Icon(Icons.login),
+                                  : const Icon(Icons.login),
                               label: Text(_isLoading ? 'Signing In...' : 'Sign In'),
                               style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
                                 backgroundColor: theme.primaryColor,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
@@ -152,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

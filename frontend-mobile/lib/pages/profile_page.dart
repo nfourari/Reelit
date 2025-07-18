@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -54,29 +56,29 @@ class _ProfilePageState extends State<ProfilePage>
                 top: 16,
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: Icon(Icons.edit),
-                  label: Text('Edit Profile'),
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Edit Profile'),
                 ),
               )
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           // Avatar + name
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 40,
                   backgroundImage: NetworkImage('https://...avatar...'),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('John Fisherman',
                         style: theme.textTheme.headlineLarge),
-                    Text('@johnfish', style: TextStyle(color: Colors.grey)),
+                    const Text('@johnfish', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
               ],
@@ -86,7 +88,7 @@ class _ProfilePageState extends State<ProfilePage>
           TabBar(
             controller: _tabController,
             labelColor: theme.primaryColor,
-            tabs: [Tab(text: 'Catches'), Tab(text: 'Friends'), Tab(text: 'Achievements')],
+            tabs: const [Tab(text: 'Catches'), Tab(text: 'Friends'), Tab(text: 'Achievements')],
           ),
           Expanded(
             child: TabBarView(
@@ -102,8 +104,8 @@ class _ProfilePageState extends State<ProfilePage>
                 ),
                 // Friends
                 GridView.builder(
-                  padding: EdgeInsets.all(16),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,

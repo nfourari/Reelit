@@ -1,0 +1,16 @@
+[
+  {
+    "id": "lake1",
+    "name": "Clearwater Lake",
+    "latitude": 28.6150,
+    "longitude": -81.2070,
+    "area": 3.2
+  },
+  {
+    "id": "lake2",
+    "name": "Silver Lake",
+    "latitude": 28.6120,
+    "longitude": -81.2150,
+    "area": 2.7
+  }
+]

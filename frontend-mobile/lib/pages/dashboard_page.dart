@@ -53,12 +53,14 @@ class DashboardPage extends StatelessWidget {
     ]
   };
 
+  const DashboardPage({super.key});
+
   @override
   Widget build(BuildContext c) {
     final theme = Theme.of(c);
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFFFF3E0), Color(0xFFE0F7FA)],
             begin: Alignment.topCenter,
@@ -67,15 +69,15 @@ class DashboardPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Dashboard', style: theme.textTheme.headlineLarge),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Card(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: _feed.map((item) {
                         return Column(
@@ -83,8 +85,8 @@ class DashboardPage extends StatelessWidget {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CircleAvatar(child: Icon(Icons.person)),
-                                SizedBox(width: 12),
+                                const CircleAvatar(child: Icon(Icons.person)),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,26 +95,26 @@ class DashboardPage extends StatelessWidget {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(item['user'],
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                   fontWeight: FontWeight.bold)),
                                           Text(item['time'],
-                                              style: TextStyle(color: Colors.grey))
+                                              style: const TextStyle(color: Colors.grey))
                                         ],
                                       ),
-                                      SizedBox(height: 4),
+                                      const SizedBox(height: 4),
                                       Text(item['action'] + ' ' + (item['fish'] ?? item['achievement'])),
                                       if (item['image'] != null) ...[
-                                        SizedBox(height: 8),
+                                        const SizedBox(height: 8),
                                         Image.network(item['image'],
                                             height: 150, fit: BoxFit.cover),
                                       ],
                                       Row(children: [
-                                        Icon(Icons.thumb_up),
-                                        SizedBox(width: 4),
+                                        const Icon(Icons.thumb_up),
+                                        const SizedBox(width: 4),
                                         Text(item['likes'].toString()),
-                                        SizedBox(width: 16),
-                                        Icon(Icons.comment),
-                                        SizedBox(width: 4),
+                                        const SizedBox(width: 16),
+                                        const Icon(Icons.comment),
+                                        const SizedBox(width: 4),
                                         Text(item['comments'].toString()),
                                       ]),
                                     ],
@@ -120,25 +122,25 @@ class DashboardPage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            Divider(),
+                            const Divider(),
                           ],
                         );
                       }).toList(),
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Card(
                         child: Padding(
-                          padding: EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
                               Text('Quick Stats', style: theme.textTheme.titleMedium),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
@@ -154,51 +156,51 @@ class DashboardPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Card(
                         child: Padding(
-                          padding: EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
                               Text('Weather', style: theme.textTheme.titleMedium),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(_weather['location']),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.wb_sunny),
-                                  SizedBox(width: 8),
+                                  const Icon(Icons.wb_sunny),
+                                  const SizedBox(width: 8),
                                   Text(
                                     '${_weather['temp']}°F',
-                                    style: TextStyle(fontSize: 24),
+                                    style: const TextStyle(fontSize: 24),
                                   ),
                                 ],
                               ),
                               Text(_weather['cond']),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Column(children: [
-                                    Icon(Icons.opacity),
-                                    Text('Humidity'),
+                                    const Icon(Icons.opacity),
+                                    const Text('Humidity'),
                                     Text(_weather['humid']),
                                   ]),
                                   Column(children: [
-                                    Icon(Icons.air),
-                                    Text('Wind'),
+                                    const Icon(Icons.air),
+                                    const Text('Wind'),
                                     Text(_weather['wind']),
                                   ]),
                                   Column(children: [
-                                    Icon(Icons.umbrella),
-                                    Text('Rain'),
+                                    const Icon(Icons.umbrella),
+                                    const Text('Rain'),
                                     Text(_weather['precip']),
                                   ]),
                                 ],
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: (_weather['forecast'] as List)
@@ -234,7 +236,7 @@ class DashboardPage extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       width: (MediaQuery.of(context).size.width - 64) / 2,
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: Colors.orange.shade100),
@@ -243,9 +245,9 @@ class DashboardPage extends StatelessWidget {
       child: Column(
         children: [
           Icon(icon, color: theme.primaryColor),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(title),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NotificationsPage extends StatefulWidget {
+  const NotificationsPage({super.key});
+
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
 }
@@ -47,10 +49,10 @@ class _NotificationsPageState extends State<NotificationsPage>
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
+        title: const Text('Notifications'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: [
+          tabs: const [
             Tab(text: 'All'),
             Tab(text: 'Requests'),
             Tab(text: 'Activity'),
@@ -66,7 +68,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                 }
               });
             },
-            child: Text('Mark all as read', style: TextStyle(color: Colors.white)),
+            child: const Text('Mark all as read', style: TextStyle(color: Colors.white)),
           )
         ],
       ),
