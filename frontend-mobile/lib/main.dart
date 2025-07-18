@@ -23,7 +23,7 @@ class ShuzzyApp extends StatelessWidget {
           initialRoute: '/login',
           routes: {
             '/login': (_) => LoginPage(),
-            '/signup': (_) => const SignupPage(),
+            '/signup': (_) => SignupPage(),
             // After login/signup, route to HomeShell with bottom nav
             '/home': (_) => HomeShell(),  
             '/settings': (_) => SettingsPage(), // standalone settings
@@ -34,8 +34,6 @@ class ShuzzyApp extends StatelessWidget {
 
 // HomeShell with BottomNavigationBar
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
-
   @override
   _HomeShellState createState() => _HomeShellState();
 }
@@ -44,7 +42,7 @@ class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
   final _pages = [
     DashboardPage(),
-    const MapPage(),
+    MapPage(),
     ProfilePage(),
   ];
   final _labels = ['Home', 'Map', 'Profile'];

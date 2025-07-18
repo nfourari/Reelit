@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({Key? key}) : super(key: key);
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -16,7 +16,7 @@ class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
 
   // Location and distance
-  LatLng _center = const LatLng(28.4, -81.5); // Default: Orlando
+  LatLng _center = LatLng(28.4, -81.5); // Default: Orlando
   double _distance = 15;
   bool _locationDenied = false;
 
@@ -24,7 +24,7 @@ class _MapPageState extends State<MapPage> {
   List<Map<String, dynamic>> _spots = [];
   List<String> _invasiveSpecies = [];
   List<String> _nativeSpecies = [];
-  final List<String> _selectedSpecies = [];
+  List<String> _selectedSpecies = [];
 
   // Load JSON files from assets
   Future<void> _loadData() async {
@@ -114,7 +114,7 @@ class _MapPageState extends State<MapPage> {
       if (dist <= _distance && matchesSpecies) {
         markers.add(
           Marker(
-            markerId: MarkerId(spot['id']?.toString() ?? '${lat}_$lng'),
+            markerId: MarkerId(spot['id']?.toString() ?? '${lat}_${lng}'),
             position: spotLatLng,
             infoWindow: InfoWindow(title: spot['name']?.toString() ?? 'Unknown'),
           ),
@@ -144,7 +144,7 @@ class _MapPageState extends State<MapPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Map Explorer'),
+        title: Text('Map Explorer'),
         centerTitle: true,
       ),
       body: isLoaded
@@ -181,7 +181,7 @@ class _MapPageState extends State<MapPage> {
                                     });
                                   },
                                 )),
-                            const Divider(),
+                            Divider(),
                             Text('Native Species',
                                 style: theme.textTheme.titleMedium),
                             ..._nativeSpecies.map((s) => CheckboxListTile(
@@ -195,7 +195,7 @@ class _MapPageState extends State<MapPage> {
                                     });
                                   },
                                 )),
-                            const Divider(),
+                            Divider(),
                             Text('Distance: ${_distance.toInt()} mi'),
                             Slider(
                               min: 1,
@@ -216,7 +216,7 @@ class _MapPageState extends State<MapPage> {
                                   _distance = 15;
                                 });
                               },
-                              child: const Text("Reset Filters"),
+                              child: Text("Reset Filters"),
                             ),
                           ],
                         ),
@@ -239,7 +239,7 @@ class _MapPageState extends State<MapPage> {
                 ),
               ],
             )
-          : const Center(child: CircularProgressIndicator()),
+          : Center(child: CircularProgressIndicator()),
     );
   }
 }

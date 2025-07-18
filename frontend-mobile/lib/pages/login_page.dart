@@ -21,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final res = await api
           .login(_emailCtrl.text, _passCtrl.text)
-          .timeout(const Duration(seconds: 10));
+          .timeout(Duration(seconds: 10));
 
       setState(() => _isLoading = false);
 
@@ -39,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
     } on TimeoutException catch (_) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Server did not respond. Try again later.')),
+        SnackBar(content: Text('Server did not respond. Try again later.')),
       );
     } catch (e, st) {
       setState(() => _isLoading = false);
