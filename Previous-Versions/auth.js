@@ -2,10 +2,10 @@
 
 const express = require('express');
 const router = express.Router();
-const User   = require('../models/User');
+const User   = require('../backend/models/User');
 const jwt    = require('jsonwebtoken'); 
 const axios = require('axios');              // For making HTTP requests
-const Catch = require('../models/Catch');    // Mongoose model for user fish catches
+const Catch = require('../backend/models/Catch');    // Mongoose model for user fish catches
 
 
 
