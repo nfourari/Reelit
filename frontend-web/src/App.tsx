@@ -14,6 +14,7 @@ import AddCatch from "./pages/AddCatch";
 import Profile from "./pages/Profile";
 import SpotDetails from "./pages/SpotDetails";
 import About from "./pages/About";
+import VerifySuccess from "./pages/VerifySuccess";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/add-catch" element={<AddCatch />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
+          <Route path="/verify-success" element={<VerifySuccess />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
