@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Fish, MapPin, Camera, FileText, Scale, Ruler } from 'lucide-react';
+import speciesData from '@/data/fish_species.json';
 
 const AddCatch = () => {
   const [formData, setFormData] = useState({
@@ -20,28 +21,16 @@ const AddCatch = () => {
 
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Fish species organized by categories
-  const fishSpeciesCategories = {
-    endangered: [
-      'Atlantic Sturgeon',
-      'Smalltooth Sawfish'
-    ],
-    invasive: [
-      'Blue Tilapia',
-      'Armored Catfish (Suckermouth)',
-      'Walking Catfish'
-    ],
-    native: [
-      'Largemouth Bass',
-      'Bluegill',
-      'Redear Sunfish (Shellcracker)',
-      'Black Crappie (Speckled Perch)',
-      'Channel Catfish',
-      'Florida Gar',
-      'Bowfin (Mudfish)',
-      'Chain Pickerel'
-    ]
-  };
+  // Fish species organized by categories using the same data as MapExplorer
+  const fishSpeciesCategories = useMemo(() => {
+    const invasive = speciesData.filter(s => s.status === 'invasive').map(s => s.species);
+    const native = speciesData.filter(s => s.status === 'native').map(s => s.species);
+
+    return {
+      invasive: invasive.sort(),
+      native: native.sort(),
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -113,15 +102,6 @@ const AddCatch = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel className="text-red-600 font-semibold">Endangered Species</SelectLabel>
-                      {fishSpeciesCategories.endangered.map((species) => (
-                        <SelectItem key={species} value={species}>
-                          {species}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                    
-                    <SelectGroup>
                       <SelectLabel className="text-amber-600 font-semibold">Invasive Species</SelectLabel>
                       {fishSpeciesCategories.invasive.map((species) => (
                         <SelectItem key={species} value={species}>
@@ -131,7 +111,7 @@ const AddCatch = () => {
                     </SelectGroup>
                     
                     <SelectGroup>
-                      <SelectLabel className="text-green-600 font-semibold">Non-endangered (Native) Species</SelectLabel>
+                      <SelectLabel className="text-green-600 font-semibold">Native Species</SelectLabel>
                       {fishSpeciesCategories.native.map((species) => (
                         <SelectItem key={species} value={species}>
                           {species}
@@ -224,12 +204,12 @@ const AddCatch = () => {
               <div className="space-y-2">
                 <Label htmlFor="notes" className="text-lg font-medium text-slate-800 flex items-center">
                   <FileText className="w-5 h-5 mr-2 text-primary" />
-                  Notes/Story
+                  Comment
                 </Label>
                 <Textarea 
                   id="notes"
                   name="notes"
-                  placeholder="Share your fishing story..."
+                  placeholder="Share your fishing experience..."
                   value={formData.notes}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-slate-300 rounded-md min-h-[120px]"
