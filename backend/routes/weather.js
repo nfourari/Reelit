@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import axios from 'axios';
+
 const router = express.Router();
-const axios = require('axios');
 
 router.get('/', async (req, res) => {
   try {
