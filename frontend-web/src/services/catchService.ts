@@ -17,7 +17,7 @@ export async function addCatchHelper(catchData: CatchPayload, jwtToken: string):
   console.log('JTW Token passed to API:', jwtToken);
   console.log('Catch Data:', catchData);
 
-  const response = await fetch(`${API_BASE_URL}/api/catches`,
+  const response = await fetch('/api/catches',
     {
       method: 'POST',
       headers:

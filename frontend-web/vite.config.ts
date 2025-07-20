@@ -7,8 +7,8 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   const apiTarget =
     mode === "development"
-      ? "http://localhost:5001/api/users"
-      : "https://shuzzy.top/api/users";
+      ? "http://localhost:5001"
+      : "https://shuzzy.top";
 
   return {
     base: "/",
@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => {
           target: apiTarget,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
     },
