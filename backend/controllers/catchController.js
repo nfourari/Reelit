@@ -25,7 +25,7 @@ export async function createCatch(request, response)
       catchLength:    length,
       catchLocation:  location, 
       catchComment:   comment,
-      imageUrl,
+      imageUrl: imageUrl,
       caughtAt:       new Date()
     });
 
