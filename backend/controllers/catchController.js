@@ -16,7 +16,7 @@ export async function createCatch(request, response)
   try
   {
     const userId = request.user.id;
-    const { species, weight, length, comment, location } = request.body;
+    const { species, weight, length, comment, location, imageUrl } = request.body;
 
     const catchRecord = await Catch.create({
       userId,
@@ -25,6 +25,7 @@ export async function createCatch(request, response)
       catchLength:    length,
       catchLocation:  location, 
       catchComment:   comment,
+      imageUrl,
       caughtAt:       new Date()
     });
 
@@ -40,6 +41,7 @@ export async function createCatch(request, response)
     return response.status(500).json({ success: false, message: 'Server error adding catch.' });
   }
 };
+
 
 
 
