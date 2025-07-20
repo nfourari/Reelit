@@ -8,8 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Fish, MapPin, Camera, FileText, Scale, Ruler } from 'lucide-react';
 import speciesData from '@/data/fish_species.json';
+import { addCatchHelper } from '@/services/catchService';
+import { toast } from '@/hooks/use-toast'
+import { useNavigate } from 'react-router-dom';
 
 const AddCatch = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     species: '',
     weight: '',
@@ -65,11 +70,79 @@ const AddCatch = () => {
   };
 
   // TO DO
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event: React.FormEvent) => 
+  {
     event.preventDefault();
+    console.log('handleSubmit triggered', formData);
+
+    const userToken = localStorage.getItem('token');
+    if (!userToken)
+    {
+      toast(
+        {
+          title: 'Unauthorized', 
+          description: 'You must be logged in to log a catch.',
+          variant: 'destructive'
+        }
+      );
+      return;
+    }
+
+    const payload =
+    {
+      species: formData.species,
+      weight: parseFloat(formData.weight),
+      length: parseFloat(formData.length),
+      location: formData.location,
+      comment: formData.notes
+    };
+
+    try
+    {
+      const newCatch = await addCatchHelper(payload, userToken);
+      console.log('Catch logged:', newCatch);
+      toast(
+        {
+          title: 'New Catch Logged!',
+          description: 'Catch logged successfully!',
+          variant: 'success',
+        }
+      );
+
+      setFormData(
+        {
+          species: '',
+          weight: '',
+          length: '',
+          location: '',
+          notes: '',
+          photo: null
+        }
+      );
+
+      const DELAY_TIME = 1000
+
+      setTimeout( () =>
+      {
+        navigate('/profile');
+      }, DELAY_TIME);
+      
+    }
+
+    catch (error: any)
+    {
+      console.error('Error logging catch:', error);
+      toast(
+        {
+          title: 'Error',
+          description: error.message || 'Failed to log new catch.'
+        }
+      );
+    }
+
     // Here you would typically send the data to your API
-    console.log('Submitting catch data:', formData);
-    alert('Catch logged successfully!');
+    // console.log('Submitting catch data:', formData);
+    // alert('Catch logged successfully!');
     // Redirect to dashboard or profile would happen here
   };
 

@@ -3,9 +3,12 @@
 // // It sets up the Express server, connects to MongoDB, and mounts the API routes.
 // // It also includes a simple health check endpoint.
 
+import dotenv     from 'dotenv';
+import path       from 'path';
 
-import dotenv from 'dotenv';
-dotenv.config();
+const envFile = process.env.NODE_ENC === 'production' ? '.env.production' : '.env.local';
+
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 import mongoose from 'mongoose';
 import app from './index.js';
