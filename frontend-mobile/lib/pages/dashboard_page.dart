@@ -1,6 +1,28 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  bool _loading = true;
+  String? _error;
+
+  // live weather fields
+  String location = '';
+  int temp = 0;
+  String cond = '';
+  String precip = '';
+  String wind = '';
+  String humid = '';
+  List<Map<String, dynamic>> forecast = [];
+
+  // static feed & stats (unchanged)
   final List<Map<String, dynamic>> _feed = [
     {
       'user': 'Carlos M.',
@@ -39,25 +61,41 @@ class DashboardPage extends StatelessWidget {
     'favoriteSpots': 12,
     'personalBest': '14.5 lbs Largemouth Bass'
   };
-  final Map<String, dynamic> _weather = {
-    'location': 'Orlando, FL',
-    'temp': 84,
-    'cond': 'Partly Cloudy',
-    'precip': '20%',
-    'wind': '8 mph',
-    'humid': '65%',
-    'forecast': [
-      {'day': 'Today', 'high': 84, 'low': 72, 'cond': 'Partly Cloudy'},
-      {'day': 'Tomorrow', 'high': 86, 'low': 74, 'cond': 'Sunny'},
-      {'day': 'Wed', 'high': 82, 'low': 71, 'cond': 'Rain'}
-    ]
-  };
 
-  const DashboardPage({super.key});
+  @override
+  void initState() {
+    super.initState();
+    _fetchWeather();
+  }
+
+  Future<void> _fetchWeather() async {
+    try {
+      final resp = await http.get(Uri.parse('http://localhost:5000/api/weather'));
+      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
+      final data = json.decode(resp.body);
+
+      setState(() {
+        location = data['location'];
+        temp = (data['temp'] as num).round();
+        cond = data['cond'];
+        precip = data['precip'];
+        wind = data['wind'];
+        humid = data['humid'];
+        forecast = List<Map<String, dynamic>>.from(data['forecast']);
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Could not load weather';
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext c) {
     final theme = Theme.of(c);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -75,6 +113,8 @@ class DashboardPage extends StatelessWidget {
               children: [
                 Text('Dashboard', style: theme.textTheme.headlineLarge),
                 const SizedBox(height: 16),
+
+                // feed...
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -94,29 +134,28 @@ class DashboardPage extends StatelessWidget {
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(item['user'],
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          Text(item['time'],
-                                              style: const TextStyle(color: Colors.grey))
+                                          Text(item['user'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          Text(item['time'], style: const TextStyle(color: Colors.grey)),
                                         ],
                                       ),
                                       const SizedBox(height: 4),
                                       Text(item['action'] + ' ' + (item['fish'] ?? item['achievement'])),
                                       if (item['image'] != null) ...[
                                         const SizedBox(height: 8),
-                                        Image.network(item['image'],
-                                            height: 150, fit: BoxFit.cover),
+                                        Image.network(item['image'], height: 150, fit: BoxFit.cover),
                                       ],
-                                      Row(children: [
-                                        const Icon(Icons.thumb_up),
-                                        const SizedBox(width: 4),
-                                        Text(item['likes'].toString()),
-                                        const SizedBox(width: 16),
-                                        const Icon(Icons.comment),
-                                        const SizedBox(width: 4),
-                                        Text(item['comments'].toString()),
-                                      ]),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.thumb_up),
+                                          const SizedBox(width: 4),
+                                          Text(item['likes'].toString()),
+                                          const SizedBox(width: 16),
+                                          const Icon(Icons.comment),
+                                          const SizedBox(width: 4),
+                                          Text(item['comments'].toString()),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -129,10 +168,14 @@ class DashboardPage extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
+                // stats & weather row
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // quick stats
                     Expanded(
                       child: Card(
                         child: Padding(
@@ -150,75 +193,81 @@ class DashboardPage extends StatelessWidget {
                                   _statCard(c, 'Favorite Spots', _stats['favoriteSpots'].toString(), Icons.pin_drop),
                                   _statCard(c, 'Personal Best', _stats['personalBest'], Icons.whatshot),
                                 ],
-                              ),
+                              )
                             ],
                           ),
                         ),
                       ),
                     ),
+
                     const SizedBox(width: 16),
+
+                    // live weather
                     Expanded(
                       child: Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Text('Weather', style: theme.textTheme.titleMedium),
-                              const SizedBox(height: 8),
-                              Text(_weather['location']),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.wb_sunny),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${_weather['temp']}°F',
-                                    style: const TextStyle(fontSize: 24),
-                                  ),
-                                ],
-                              ),
-                              Text(_weather['cond']),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Column(children: [
-                                    const Icon(Icons.opacity),
-                                    const Text('Humidity'),
-                                    Text(_weather['humid']),
-                                  ]),
-                                  Column(children: [
-                                    const Icon(Icons.air),
-                                    const Text('Wind'),
-                                    Text(_weather['wind']),
-                                  ]),
-                                  Column(children: [
-                                    const Icon(Icons.umbrella),
-                                    const Text('Rain'),
-                                    Text(_weather['precip']),
-                                  ]),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: (_weather['forecast'] as List)
-                                    .map((d) => Column(children: [
-                                          Text(d['day']),
-                                          Icon(
-                                            d['cond'] == 'Sunny'
-                                                ? Icons.wb_sunny
-                                                : d['cond'] == 'Rain'
-                                                    ? Icons.grain
-                                                    : Icons.cloud,
-                                          ),
-                                          Text('${d['high']}°/${d['low']}°'),
-                                        ]))
-                                    .toList(),
-                              ),
-                            ],
-                          ),
+                          child: _loading
+                              ? const Center(child: CircularProgressIndicator())
+                              : _error != null
+                                  ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
+                                  : Column(
+                                      children: [
+                                        Text('Weather', style: theme.textTheme.titleMedium),
+                                        const SizedBox(height: 8),
+                                        Text(location),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.wb_sunny),
+                                            const SizedBox(width: 8),
+                                            Text('$temp°F', style: const TextStyle(fontSize: 24)),
+                                          ],
+                                        ),
+                                        Text(cond),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Column(children: [
+                                              const Icon(Icons.opacity),
+                                              const Text('Humidity'),
+                                              Text(humid),
+                                            ]),
+                                            Column(children: [
+                                              const Icon(Icons.air),
+                                              const Text('Wind'),
+                                              Text(wind),
+                                            ]),
+                                            Column(children: [
+                                              const Icon(Icons.umbrella),
+                                              const Text('Rain'),
+                                              Text(precip),
+                                            ]),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: forecast.map((d) {
+                                            return Column(
+                                              children: [
+                                                Text(d['day']),
+                                                Icon(
+                                                  d['cond'].contains('Rain')
+                                                      ? Icons.grain
+                                                      : d['cond'].contains('Sunny')
+                                                          ? Icons.wb_sunny
+                                                          : Icons.cloud,
+                                                ),
+                                                Text('${d['high']}°/${d['low']}°'),
+                                              ],
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ],
+                                    ),
                         ),
                       ),
                     ),
