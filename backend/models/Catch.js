@@ -7,7 +7,8 @@ const catchSchema = new mongoose.Schema({
   catchLength:    { type: Number, required: true },  // <- fixed
   catchLocation:  { type: String, required: true },
   catchComment:   { type: String, required: false },
-  caughtAt:       { type: Date, default: Date.now }
+  caughtAt:       { type: Date, default: Date.now },
+  imageUrl:       { type: String, required: false }
 }, { timestamps: true });
 
 const Catch = mongoose.model('Catch', catchSchema, 'Catches');
