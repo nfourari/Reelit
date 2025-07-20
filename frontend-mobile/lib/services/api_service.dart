@@ -21,7 +21,7 @@ class ApiService {
 
   /// Log in and store the returned token for future calls.
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final uri = Uri.parse('$_baseUrl/auth/login');
+    final uri = Uri.parse('$_baseUrl/users/login');
     final resp = await http.post(
       uri,
       headers: _headers,
@@ -42,7 +42,7 @@ class ApiService {
     required String email,
     required String password,
   }) async {
-    final uri = Uri.parse('$_baseUrl/auth/register');
+    final uri = Uri.parse('$_baseUrl/users/register');
     final resp = await http.post(
       uri,
       headers: _headers,
