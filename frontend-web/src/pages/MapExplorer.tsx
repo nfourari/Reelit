@@ -116,10 +116,17 @@ const MapExplorer = () => {
   // Filter spots based on criteria
   const filteredSpots = useMemo(() => {
     return fishingSpots.filter(spot => {
-      // Species filter
-      if (filters.species.length > 0 && 
-          !spot.species.some(species => filters.species.includes(species))) {
-        return false;
+      // Species filter - only apply if species filters are selected
+      if (filters.species.length > 0) {
+        // Check if the spot has ALL of the selected species
+        const hasAllSelectedSpecies = filters.species.every(selectedSpecies => 
+          spot.species.includes(selectedSpecies)
+        );
+        
+        // If the spot doesn't have ALL of the selected species, filter it out
+        if (!hasAllSelectedSpecies) {
+          return false;
+        }
       }
       
       // Distance filter (if user location available)
@@ -200,6 +207,31 @@ const MapExplorer = () => {
             </div>
           </div>
         )}
+
+        {/* Status message showing filter results */}
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <Fish className="h-5 w-5 text-blue-500" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                {filteredSpots.length === 0 ? (
+                  <span>No fishing spots match your current filters. Try adjusting your criteria.</span>
+                ) : (
+                  <span>
+                    Showing {filteredSpots.length} fishing {filteredSpots.length === 1 ? 'spot' : 'spots'}
+                    {filters.species.length > 0 ? (
+                      <> containing these species: <strong>{filters.species.join(', ')}</strong></>
+                    ) : (
+                      <> within {filters.distance} miles</>
+                    )}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters */}
@@ -315,6 +347,7 @@ const MapExplorer = () => {
                 center={userLocation || centerDefault}
                 spots={filteredSpots}
                 userLocation={userLocation}
+                selectedSpecies={filters.species}
               />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-slate-100">

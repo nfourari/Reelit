@@ -15,7 +15,7 @@ const mapOptions = {
   zoomControl: true
 };
 
-const MapWrapper = ({ center, spots, userLocation }) => {
+const MapWrapper = ({ center, spots, userLocation, selectedSpecies = [] }) => {
   const [map, setMap] = useState(null);
   const [selectedSpot, setSelectedSpot] = useState(null);
 
@@ -23,16 +23,13 @@ const MapWrapper = ({ center, spots, userLocation }) => {
   console.log("MapWrapper rendering with:", { 
     center, 
     spotsCount: spots?.length || 0,
-    userLocation: userLocation ? "present" : "absent" 
+    userLocation: userLocation ? "present" : "absent",
+    selectedSpecies
   });
 
   const onLoad = useCallback((mapInstance) => {
     console.log("Map loaded successfully");
     setMap(mapInstance);
-  }, []);
-
-  const onError = useCallback((error) => {
-    console.error("Error loading Google Maps:", error);
   }, []);
   
   useEffect(() => {
@@ -58,16 +55,15 @@ const MapWrapper = ({ center, spots, userLocation }) => {
         center={center}
         zoom={10}
         onLoad={onLoad}
-        onError={onError}
         options={mapOptions}
       >
         {userLocation && (
           <Marker
             position={userLocation}
             icon={{
-              path: window.google.maps.SymbolPath.CIRCLE,
+              path: 0, // Use a simple circle path (0 = circle)
               scale: 6,
-              fillColor: "#4285F4",
+              fillColor: "#4285F4", // Blue for user location
               fillOpacity: 1,
               strokeWeight: 2,
               strokeColor: "white",
@@ -81,9 +77,9 @@ const MapWrapper = ({ center, spots, userLocation }) => {
             position={{ lat: spot.lat, lng: spot.lng }}
             onClick={() => setSelectedSpot(spot)}
             icon={{
-              path: window.google.maps.SymbolPath.CIRCLE,
+              path: 0, // Use a simple circle path (0 = circle)
               scale: 5,
-              fillColor: "#0F9D58",
+              fillColor: "#0F9D58", // Green for all lake spots
               fillOpacity: 0.9,
               strokeWeight: 1,
               strokeColor: "white"
@@ -101,7 +97,9 @@ const MapWrapper = ({ center, spots, userLocation }) => {
               <div className="text-slate-600 mt-2">
                 <p className="font-semibold">Available Species:</p>
                 <ul className="list-disc list-inside">
-                  {selectedSpot.species.map(s => <li key={s}>{s}</li>)}
+                  {selectedSpot.species.map(s => (
+                    <li key={s}>{s}</li>
+                  ))}
                 </ul>
               </div>
             </div>
