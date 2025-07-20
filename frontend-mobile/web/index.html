@@ -1,53 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://maps.googleapis.com https://maps.gstatic.com 'unsafe-eval' 'unsafe-inline';">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta
+    name="Content-Security-Policy"
+    content="
+      default-src 'self' https://maps.googleapis.com https://maps.gstatic.com 'unsafe-inline' 'unsafe-eval';
+      script-src 'self' https://maps.googleapis.com https://maps.gstatic.com 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https://fonts.gstatic.com https://maps.gstatic.com https://maps.googleapis.com
+    "
+  >
+  <meta name="description" content="Shuzzy Mobile">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="frontend">
+  <meta name="apple-mobile-web-app-title" content="ShuzzyMobile">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>ShuzzyMobile</title>
+
+  <!-- Google Maps JS API -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAv8iV6Q-KbJGHLl4dFno-Y4bHGczyQfks"></script>
+
+  <!-- Web app manifest -->
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async>
-    window.onload = function() {
-      // Initialize Google Maps JS SDK
-      if (typeof google !== 'undefined') {
-        google.maps.importLibrary("maps");
-      }
-      
-      // Initialize Flutter app
-      let script = document.createElement('script');
-      script.src = 'main.dart.js';
-      script.type = 'application/javascript';
-      document.body.append(script);
-    };
-  </script>
+  <!-- Directly load the Flutter HTML-renderer build -->
+  <script type="application/javascript" src="main.dart.js"></script>
 </body>
 </html>
