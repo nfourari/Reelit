@@ -44,7 +44,7 @@ const Dashboard = () => {
   const [catchesLoading, setCatchesLoading] = useState(true);
 
 
-  const getAuthToken = () => localStorage.getItem('authToken');
+  const getAuthToken = () => localStorage.getItem('token');
   
   // Calculate user stats from catches
   const calculateStats = (catches: UserCatch[]): UserStats =>
@@ -58,9 +58,8 @@ const Dashboard = () => {
     (previous.catchWeight > current.catchWeight) ? previous : current
     );
 
-    return
-    {
-      totalCatches: catches.length;
+    return {
+      totalCatches: catches.length,
       personalBest: `${heaviestCatch.catchWeight} lbs ${heaviestCatch.catchName}`
     };
   };
@@ -228,7 +227,7 @@ const Dashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column - Recent Catches */}
           <div className="lg:col-span-2">
             <Card className="mb-8">
@@ -393,8 +392,6 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
 
 
 
