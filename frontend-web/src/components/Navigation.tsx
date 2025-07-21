@@ -12,16 +12,19 @@ import {
   X
 } from 'lucide-react';
 
-const Navigation = () => {
+const Navigation = () => 
+{
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const handleLogout = () => {
-    // Implement logout functionality here
+  const handleLogout = () => 
+  {
+    localStorage.removeItem('token');
     navigate('/');
   };
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = () => 
+  {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
