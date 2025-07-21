@@ -13,14 +13,12 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _loading = true;
   String? _error;
 
-  // live weather fields
-  String location = '';
-  int temp = 0;
-  String cond = '';
-  String precip = '';
-  String wind = '';
-  String humid = '';
-  List<Map<String, dynamic>> forecast = [];
+  // Current weather fields:
+  int? _temp;
+  int? _feelsLike;
+  String? _humidity;
+  String? _wind;
+  String? _precip;
 
   // static feed & stats (unchanged)
   final List<Map<String, dynamic>> _feed = [
@@ -69,19 +67,49 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _fetchWeather() async {
+    const url =
+        'https://api.open-meteo.com/v1/forecast'
+        '?latitude=28.5383'
+        '&longitude=-81.3792'
+        '&current_weather=true'
+        '&hourly=relativehumidity_2m,precipitation'
+        '&temperature_unit=fahrenheit'
+        '&wind_speed_unit=mph'
+        '&precipitation_unit=inch';
+
     try {
-      final resp = await http.get(Uri.parse('http://localhost:5000/api/weather'));
-      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
-      final data = json.decode(resp.body);
+      final resp = await http.get(Uri.parse(url));
+      if (resp.statusCode != 200) {
+        throw Exception('HTTP ${resp.statusCode}');
+      }
+      final data = json.decode(resp.body) as Map<String, dynamic>;
+
+      // extract current weather
+      final cw = data['current_weather'] as Map<String, dynamic>?;
+
+      // find index in the hourly arrays that matches current time
+      final hourly = data['hourly'] as Map<String, dynamic>?;
+      String? hum;
+      String? prec;
+
+      if (hourly != null && cw != null) {
+        final times = List<String>.from(hourly['time'] ?? []);
+        final idx = times.indexOf(cw['time'] as String);
+        if (idx >= 0) {
+          final rh = List<num>.from(hourly['relativehumidity_2m'] ?? []);
+          final pr = List<num>.from(hourly['precipitation'] ?? []);
+          hum = '${rh[idx].round()}%';
+          prec = pr[idx].toStringAsFixed(2);
+        }
+      }
 
       setState(() {
-        location = data['location'];
-        temp = (data['temp'] as num).round();
-        cond = data['cond'];
-        precip = data['precip'];
-        wind = data['wind'];
-        humid = data['humid'];
-        forecast = List<Map<String, dynamic>>.from(data['forecast']);
+        _temp = cw != null ? (cw['temperature'] as num).round() : null;
+        _feelsLike =
+            cw != null ? (cw['apparent_temperature'] as num?)?.round() : null;
+        _wind = cw != null ? '${(cw['windspeed'] as num).round()} mph' : null;
+        _humidity = hum;
+        _precip = prec;
         _loading = false;
       });
     } catch (e) {
@@ -114,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Text('Dashboard', style: theme.textTheme.headlineLarge),
                 const SizedBox(height: 16),
 
-                // feed...
+                // feed
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -129,33 +157,47 @@ class _DashboardPageState extends State<DashboardPage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(item['user'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          Text(item['time'], style: const TextStyle(color: Colors.grey)),
+                                          Text(item['user'] as String,
+                                              style: const TextStyle(
+                                                  fontWeight:
+                                                      FontWeight.bold)),
+                                          Text(item['time'] as String,
+                                              style: const TextStyle(
+                                                  color: Colors.grey))
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(item['action'] + ' ' + (item['fish'] ?? item['achievement'])),
+                                      Text((item['action'] as String) +
+                                          ' ' +
+                                          ((item['fish'] as String?) ??
+                                              (item['achievement']
+                                                  as String))),
                                       if (item['image'] != null) ...[
                                         const SizedBox(height: 8),
-                                        Image.network(item['image'], height: 150, fit: BoxFit.cover),
+                                        Image.network(
+                                          item['image'] as String,
+                                          height: 150,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ],
                                       const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.thumb_up),
-                                          const SizedBox(width: 4),
-                                          Text(item['likes'].toString()),
-                                          const SizedBox(width: 16),
-                                          const Icon(Icons.comment),
-                                          const SizedBox(width: 4),
-                                          Text(item['comments'].toString()),
-                                        ],
-                                      ),
+                                      Row(children: [
+                                        const Icon(Icons.thumb_up),
+                                        const SizedBox(width: 4),
+                                        Text((item['likes'] as int).toString()),
+                                        const SizedBox(width: 16),
+                                        const Icon(Icons.comment),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                            (item['comments'] as int).toString()),
+                                      ]),
                                     ],
                                   ),
                                 ),
@@ -171,7 +213,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
                 const SizedBox(height: 16),
 
-                // stats & weather row
+                // stats & weather
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -182,18 +224,35 @@ class _DashboardPageState extends State<DashboardPage> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Text('Quick Stats', style: theme.textTheme.titleMedium),
+                              Text('Quick Stats',
+                                  style: theme.textTheme.titleMedium),
                               const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
-                                  _statCard(c, 'Total Catches', _stats['totalCatches'].toString(), Icons.pool),
-                                  _statCard(c, 'Achievements', _stats['achievements'].toString(), Icons.emoji_events),
-                                  _statCard(c, 'Favorite Spots', _stats['favoriteSpots'].toString(), Icons.pin_drop),
-                                  _statCard(c, 'Personal Best', _stats['personalBest'], Icons.whatshot),
+                                  _statCard(
+                                      c,
+                                      'Total Catches',
+                                      _stats['totalCatches'].toString(),
+                                      Icons.pool),
+                                  _statCard(
+                                      c,
+                                      'Achievements',
+                                      _stats['achievements'].toString(),
+                                      Icons.emoji_events),
+                                  _statCard(
+                                      c,
+                                      'Favorite Spots',
+                                      _stats['favoriteSpots'].toString(),
+                                      Icons.pin_drop),
+                                  _statCard(
+                                      c,
+                                      'Personal Best',
+                                      _stats['personalBest'] as String,
+                                      Icons.whatshot),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -208,63 +267,62 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: _loading
-                              ? const Center(child: CircularProgressIndicator())
+                              ? const Center(
+                                  child: CircularProgressIndicator())
                               : _error != null
-                                  ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
+                                  ? Center(
+                                      child: Text(_error!,
+                                          style: const TextStyle(
+                                              color: Colors.red)))
                                   : Column(
                                       children: [
-                                        Text('Weather', style: theme.textTheme.titleMedium),
+                                        Text('Weather in Orlando',
+                                            style: theme
+                                                .textTheme.titleMedium),
                                         const SizedBox(height: 8),
-                                        Text(location),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(Icons.wb_sunny),
-                                            const SizedBox(width: 8),
-                                            Text('$temp°F', style: const TextStyle(fontSize: 24)),
-                                          ],
+                                        Text(
+                                          _temp != null
+                                              ? '$_temp°F'
+                                              : 'N/A',
+                                          style:
+                                              const TextStyle(fontSize: 24),
                                         ),
-                                        Text(cond),
+                                        const SizedBox(height: 4),
+                                        if (_feelsLike != null)
+                                          Text(
+                                              'Feels like $_feelsLike°F',
+                                              style: const TextStyle(
+                                                  color: Colors.grey)),
                                         const SizedBox(height: 8),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
                                           children: [
-                                            Column(children: [
-                                              const Icon(Icons.opacity),
-                                              const Text('Humidity'),
-                                              Text(humid),
-                                            ]),
-                                            Column(children: [
-                                              const Icon(Icons.air),
-                                              const Text('Wind'),
-                                              Text(wind),
-                                            ]),
-                                            Column(children: [
-                                              const Icon(Icons.umbrella),
-                                              const Text('Rain'),
-                                              Text(precip),
-                                            ]),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                          children: forecast.map((d) {
-                                            return Column(
+                                            Column(
                                               children: [
-                                                Text(d['day']),
-                                                Icon(
-                                                  d['cond'].contains('Rain')
-                                                      ? Icons.grain
-                                                      : d['cond'].contains('Sunny')
-                                                          ? Icons.wb_sunny
-                                                          : Icons.cloud,
-                                                ),
-                                                Text('${d['high']}°/${d['low']}°'),
+                                                const Icon(Icons.opacity),
+                                                const SizedBox(height: 4),
+                                                Text(_humidity ?? '—'),
+                                                const Text('Humidity'),
                                               ],
-                                            );
-                                          }).toList(),
+                                            ),
+                                            Column(
+                                              children: [
+                                                const Icon(Icons.air),
+                                                const SizedBox(height: 4),
+                                                Text(_wind ?? '—'),
+                                                const Text('Wind'),
+                                              ],
+                                            ),
+                                            Column(
+                                              children: [
+                                                const Icon(Icons.umbrella),
+                                                const SizedBox(height: 4),
+                                                Text(_precip ?? '—'),
+                                                const Text('Precip'),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -281,7 +339,8 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _statCard(BuildContext context, String title, String value, IconData icon) {
+  Widget _statCard(
+      BuildContext context, String title, String value, IconData icon) {
     final theme = Theme.of(context);
     return Container(
       width: (MediaQuery.of(context).size.width - 64) / 2,

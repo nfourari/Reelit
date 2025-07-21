@@ -18,21 +18,39 @@ class ApiService {
     return headers;
   }
 
-
   /// Log in and store the returned token for future calls.
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final uri = Uri.parse('$_baseUrl/auth/login');
+    final uri = Uri.parse('$_baseUrl/users/login');
     final resp = await http.post(
       uri,
       headers: _headers,
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    final data = jsonDecode(resp.body) as Map<String, dynamic>;
-    if (resp.statusCode == 200 && data['token'] != null) {
-      _token = data['token'] as String;
+    final raw = jsonDecode(resp.body) as Map<String, dynamic>;
+
+    // if we got a token back, treat this as success
+    String? token;
+    if (raw['token'] != null) {
+      token = raw['token'] as String;
+    } else if (raw['user']?['token'] != null) {
+      token = raw['user']['token'] as String;
     }
-    return data;
+
+    if (resp.statusCode == 200 && token != null) {
+      _token = token;
+      return {
+        'success': true,
+        'message': null,
+        'data': raw,
+      };
+    } else {
+      // pick up any server‐sent message, or default
+      return {
+        'success': false,
+        'message': raw['message'] ?? 'Invalid credentials',
+      };
+    }
   }
 
   /// Sign up a new user.
@@ -42,7 +60,7 @@ class ApiService {
     required String email,
     required String password,
   }) async {
-    final uri = Uri.parse('$_baseUrl/auth/register');
+    final uri = Uri.parse('$_baseUrl/users/register');
     final resp = await http.post(
       uri,
       headers: _headers,

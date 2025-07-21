@@ -69,6 +69,8 @@ class _MapPageState extends State<MapPage> {
     if (locData.latitude != null && locData.longitude != null) {
       setState(() {
         _center = LatLng(locData.latitude!, locData.longitude!);
+        _mapController
+            ?.animateCamera(CameraUpdate.newLatLng(_center));
       });
     }
   }
@@ -96,32 +98,33 @@ class _MapPageState extends State<MapPage> {
 
   Set<Marker> _buildMarkers() {
     final markers = <Marker>{};
-    
+
     for (final spot in _spots) {
       final lat = _toDouble(spot['lat']);
       final lng = _toDouble(spot['lng']);
-      
-      // Skip invalid coordinates
+
       if (lat == null || lng == null) continue;
-      
+
       final spotLatLng = LatLng(lat, lng);
       final dist = _calculateDistance(_center, spotLatLng);
-      
+
       final speciesInSpot = (spot['species'] as List?)?.cast<String>() ?? [];
       final matchesSpecies = _selectedSpecies.isEmpty ||
           speciesInSpot.any(_selectedSpecies.contains);
-      
+
       if (dist <= _distance && matchesSpecies) {
         markers.add(
           Marker(
-            markerId: MarkerId(spot['id']?.toString() ?? '${lat}_${lng}'),
+            markerId: MarkerId(
+                spot['id']?.toString() ?? '${lat}_${lng}'),
             position: spotLatLng,
-            infoWindow: InfoWindow(title: spot['name']?.toString() ?? 'Unknown'),
+            infoWindow: InfoWindow(
+                title: spot['name']?.toString() ?? 'Unknown'),
           ),
         );
       }
     }
-    
+
     return markers;
   }
 
@@ -139,107 +142,146 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isLoaded = _spots.isNotEmpty;
+    final sheetHeight = MediaQuery.of(context).size.height * 0.35;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Map Explorer'),
+        title: const Text('Map Explorer'),
         centerTitle: true,
       ),
       body: isLoaded
-          ? Column(
+          ? Stack(
               children: [
+                // Fullscreen map
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: _center,
+                    zoom: 10,
+                  ),
+                  onMapCreated: (c) => _mapController = c,
+                  markers: _buildMarkers(),
+                  myLocationEnabled: true,
+                ),
+
+                // If location denied, show a banner
                 if (_locationDenied)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.yellow[100],
-                    child: Text(
-                      "Location access denied. Showing results from Orlando.",
-                      style: TextStyle(color: Colors.orange[900]),
+                  Positioned(
+                    top: kToolbarHeight + 8,
+                    left: 16,
+                    right: 16,
+                    child: Material(
+                      color: Colors.yellow[100],
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          "Location access denied. Showing Orlando.",
+                          style: TextStyle(color: Colors.orange[900]),
+                        ),
+                      ),
                     ),
                   ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      // Filter UI
-                      Container(
-                        width: 220,
-                        padding: const EdgeInsets.all(8),
-                        child: ListView(
-                          children: [
-                            Text('Invasive Species',
-                                style: theme.textTheme.titleMedium),
-                            ..._invasiveSpecies.map((s) => CheckboxListTile(
-                                  title: Text(s),
-                                  value: _selectedSpecies.contains(s),
-                                  onChanged: (v) {
-                                    setState(() {
-                                      v == true
-                                          ? _selectedSpecies.add(s)
-                                          : _selectedSpecies.remove(s);
-                                    });
-                                  },
-                                )),
-                            Divider(),
-                            Text('Native Species',
-                                style: theme.textTheme.titleMedium),
-                            ..._nativeSpecies.map((s) => CheckboxListTile(
-                                  title: Text(s),
-                                  value: _selectedSpecies.contains(s),
-                                  onChanged: (v) {
-                                    setState(() {
-                                      v == true
-                                          ? _selectedSpecies.add(s)
-                                          : _selectedSpecies.remove(s);
-                                    });
-                                  },
-                                )),
-                            Divider(),
-                            Text('Distance: ${_distance.toInt()} mi'),
-                            Slider(
-                              min: 1,
-                              max: 25,
-                              divisions: 24,
-                              value: _distance,
-                              label: '${_distance.toInt()} mi',
-                              onChanged: (val) {
-                                setState(() {
-                                  _distance = val;
-                                });
-                              },
-                            ),
-                            OutlinedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _selectedSpecies.clear();
-                                  _distance = 15;
-                                });
-                              },
-                              child: Text("Reset Filters"),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      // Map
-                      Expanded(
-                        child: GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: _center,
-                            zoom: 10,
-                          ),
-                          onMapCreated: (c) => _mapController = c,
-                          markers: _buildMarkers(),
-                          myLocationEnabled: true,
+                // Bottom draggable sheet for filters
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: sheetHeight,
+                  child: DraggableScrollableSheet(
+                    initialChildSize: 1.0,
+                    minChildSize: 0.6,
+                    maxChildSize: 1.0,
+                    builder: (context, scrollCtrl) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                                blurRadius: 8,
+                                color: Colors.black26,
+                                offset: Offset(0, -2))
+                          ],
+                          borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(16)),
                         ),
-                      ),
-                    ],
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: ListView(
+                            controller: scrollCtrl,
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: 40,
+                                  height: 4,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text('Invasive Species',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium),
+                              ..._invasiveSpecies.map((s) =>
+                                  CheckboxListTile(
+                                    title: Text(s),
+                                    value: _selectedSpecies.contains(s),
+                                    onChanged: (v) {
+                                      setState(() {
+                                        v == true
+                                            ? _selectedSpecies.add(s)
+                                            : _selectedSpecies.remove(s);
+                                      });
+                                    },
+                                  )),
+                              Divider(),
+                              Text('Native Species',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium),
+                              ..._nativeSpecies.map((s) =>
+                                  CheckboxListTile(
+                                    title: Text(s),
+                                    value: _selectedSpecies.contains(s),
+                                    onChanged: (v) {
+                                      setState(() {
+                                        v == true
+                                            ? _selectedSpecies.add(s)
+                                            : _selectedSpecies.remove(s);
+                                      });
+                                    },
+                                  )),
+                              Divider(),
+                              Text('Distance: ${_distance.toInt()} mi'),
+                              Slider(
+                                min: 1,
+                                max: 25,
+                                divisions: 24,
+                                value: _distance,
+                                label: '${_distance.toInt()} mi',
+                                onChanged: (val) {
+                                  setState(() => _distance = val);
+                                },
+                              ),
+                              OutlinedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedSpecies.clear();
+                                    _distance = 15;
+                                  });
+                                },
+                                child: const Text("Reset Filters"),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
             )
-          : Center(child: CircularProgressIndicator()),
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 }
