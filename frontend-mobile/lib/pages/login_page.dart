@@ -5,7 +5,6 @@ import '../services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -20,32 +19,30 @@ class _LoginPageState extends State<LoginPage> {
     final api = context.read<ApiService>();
     try {
       final res = await api
-          .login(_emailCtrl.text, _passCtrl.text)
+          .login(_emailCtrl.text.trim(), _passCtrl.text)
           .timeout(const Duration(seconds: 10));
 
       setState(() => _isLoading = false);
 
       if (res['success'] == true) {
-        // Navigate to HomeShell instead of old /dashboard
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(res['message'] ?? 'Invalid credentials'),
+            content: Text(res['message'] as String),
             backgroundColor: Colors.redAccent,
           ),
         );
       }
-    } on TimeoutException catch (_) {
+    } on TimeoutException {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Server did not respond. Try again later.')),
       );
-    } catch (e, st) {
+    } catch (e) {
       setState(() => _isLoading = false);
-      debugPrint('🔥 LOGIN ERROR 🔥 $e\n$st');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Network/Server error: $e')),
+        SnackBar(content: Text('Network error: $e')),
       );
     }
   }
@@ -53,7 +50,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -69,12 +65,12 @@ class _LoginPageState extends State<LoginPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.grey[700]),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  if (Navigator.of(context).canPop())
+                    IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.grey[700]),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   Card(
                     elevation: 8,
                     shape: RoundedRectangleBorder(
@@ -83,8 +79,8 @@ class _LoginPageState extends State<LoginPage> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          // logo + title
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -117,8 +113,10 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(height: 4),
                           Text(
                             'Sign in to your Orlando fishing account',
-                            style: theme.textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
+                            style: theme.textTheme.titleSmall
+                                ?.copyWith(color: Colors.grey[600]),
                           ),
+
                           const SizedBox(height: 24),
                           TextField(
                             controller: _emailCtrl,
@@ -129,8 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                                 borderSide: BorderSide(color: Colors.orange[200]!),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                  BorderSide(color: theme.colorScheme.secondary),
+                                borderSide: BorderSide(color: theme.colorScheme.secondary),
                               ),
                             ),
                           ),
@@ -144,11 +141,11 @@ class _LoginPageState extends State<LoginPage> {
                                 borderSide: BorderSide(color: Colors.orange[200]!),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                  BorderSide(color: theme.colorScheme.secondary),
+                                borderSide: BorderSide(color: theme.colorScheme.secondary),
                               ),
                             ),
                           ),
+
                           const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
@@ -158,7 +155,8 @@ class _LoginPageState extends State<LoginPage> {
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white),
                                     )
                                   : const Icon(Icons.login),
                               label: Text(_isLoading ? 'Signing In...' : 'Sign In'),
@@ -172,11 +170,13 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
+
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Don’t have an account? ", style: TextStyle(color: Colors.grey[600])),
+                              Text("Don’t have an account? ",
+                                  style: TextStyle(color: Colors.grey[600])),
                               GestureDetector(
                                 onTap: () => Navigator.pushNamed(context, '/signup'),
                                 child: Text(
