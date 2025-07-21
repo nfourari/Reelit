@@ -1,17 +1,17 @@
 [
-  {
-    "id": "largemouth_bass",
-    "name": "Largemouth Bass",
-    "icon": "bass_icon.png"
-  },
-  {
-    "id": "rainbow_trout",
-    "name": "Rainbow Trout",
-    "icon": "trout_icon.png"
-  },
-  {
-    "id": "bluegill",
-    "name": "Bluegill",
-    "icon": "bluegill_icon.png"
-  }
+  { "species": "Largemouth Bass", "status": "native" },
+  { "species": "Bluegill", "status": "native" },
+  { "species": "Redear Sunfish", "status": "native" },
+  { "species": "Black Crappie", "status": "native" },
+  { "species": "Warmouth", "status": "native" },
+  { "species": "Chain Pickerel", "status": "native" },
+  { "species": "Florida Gar", "status": "native" },
+  { "species": "Bowfin", "status": "native" },
+  { "species": "Channel Catfish", "status": "native" },
+  { "species": "Brown Bullhead", "status": "native" },
+  { "species": "Golden Shiner", "status": "native" },
+  { "species": "Threadfin Shad", "status": "native" },
+  { "species": "Sunshine Bass", "status": "native" },
+  { "species": "Blue Tilapia", "status": "invasive" },
+  { "species": "Walking Catfish", "status": "invasive" }
 ]
