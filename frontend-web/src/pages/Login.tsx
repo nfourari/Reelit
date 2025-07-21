@@ -1,14 +1,17 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LogIn, ArrowLeft, TreePalm } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { authApi, handleApiError } from '@/services/apiService';
 
-const Login = () => {
+const Login = () => 
+{ 
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,44 +20,34 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      // Replace this URL with your actual backend endpoint
-      const response = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+    try 
+    {
+      const response = await authApi.login(email, password);
+      
+      localStorage.setItem('token', response.token);
+      
+      toast({
+        title: "Login successful!",
+        description: "Welcome back to Shuzzy+",
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store the token if your backend returns one
-        localStorage.setItem('token', data.token);
-        toast({
-          title: "Login successful!",
-          description: "Welcome back to Shuzzy+",
-        });
-        // Redirect to dashboard or home page
-        window.location.href = '/dashboard';
-      } else {
-        toast({
-          title: "Login failed",
-          description: data.message || "Invalid credentials",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+      // Redirect to dashboard or home page
+      navigate('/dashboard');
+    } 
+    catch (error)
+    {
       toast({
-        title: "Error",
-        description: "Unable to connect to server",
+        title: "Login failed",
+        description: handleApiError(error),
         variant: "destructive",
       });
-    } finally {
+    } 
+    finally 
+    {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-cyan-50 flex items-center justify-center p-4">
@@ -93,6 +86,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="border-orange-200 focus:border-accent"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -106,6 +100,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="border-orange-200 focus:border-accent"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -113,6 +108,7 @@ const Login = () => {
                 type="submit" 
                 className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
                 disabled={isLoading}
+                size="lg"
               >
                 {isLoading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />

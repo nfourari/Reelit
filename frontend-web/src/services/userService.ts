@@ -1,4 +1,6 @@
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 
 export interface UserProfile
 {
@@ -12,11 +14,13 @@ export interface UserProfile
   updatedAt: string;          
 }
 
+
 export interface ApiError
 {
   message: string;
   status: number;
 }
+
 
 export class UserServiceError extends Error
 {
@@ -30,11 +34,11 @@ export class UserServiceError extends Error
   }
 }
 
+
 /**
  * Get user profile from backend
  * Requires valid JWT token in localStorage
  */
-
 export async function getUserProfile(): Promise<UserProfile>
 {
   const userToken = localStorage.getItem('token');
@@ -95,6 +99,7 @@ export function isAuthenticated(): boolean
   return !!localStorage.getItem('token');
 }
 
+
 /**
  * Clear authentication token
  */
@@ -102,5 +107,3 @@ export function clearAuth(): void
 {
   localStorage.removeItem('token');
 }
-
-
