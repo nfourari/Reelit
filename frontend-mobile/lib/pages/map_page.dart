@@ -54,6 +54,18 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
+  BitmapDescriptor? _greenDotIcon;
+
+  Future<void> _loadGreenDotIcon() async {
+    final icon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(24, 24)),
+      'assets/images/green_dot.png',
+    );
+    setState(() {
+      _greenDotIcon = icon;
+    });
+  }
+
   // Get user location
   Future<void> _getUserLocation() async {
     final location = Location();
@@ -119,6 +131,7 @@ class _MapPageState extends State<MapPage> {
             markerId: MarkerId(
                 spot['id']?.toString() ?? '${lat}_${lng}'),
             position: spotLatLng,
+            icon: _greenDotIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
             infoWindow: InfoWindow(
                 title: spot['name']?.toString() ?? 'Unknown'),
           ),
@@ -139,6 +152,7 @@ class _MapPageState extends State<MapPage> {
       debugPrint("Location error: $e");
       setState(() => _locationDenied = true);
     });
+    _loadGreenDotIcon();
   }
 
   @override
