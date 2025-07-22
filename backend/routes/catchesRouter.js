@@ -17,4 +17,3 @@ catchesRouter.post('/',  authenticateUser, upload.single('image'), createCatch);
 catchesRouter.get('/',   authenticateUser, listCatches);
 
 export default catchesRouter;
-~                              
