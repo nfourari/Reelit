@@ -1,11 +1,9 @@
-
 // All catch-related database work lives here: creating a new catch (& increment user catch count)
 // and listing all of a user's catches
 
-// import { TextQueryHandler } from 'puppeteer';
 import Catch from '../models/Catch.js';
-import  User  from '../models/User.js';
-
+import User from '../models/User.js';
+import cloudinary from '../services/cloudinary.js';
 
 /*
  * POST /api/catches
@@ -16,16 +14,42 @@ export async function createCatch(request, response)
   try
   {
     const userId = request.user.id;
-    const { species, weight, length, comment, location, imageUrl } = request.body;
+    const { species, weight, length, comment, location } = request.body;
+
+    let imageUrl = null;
+
+    // If an image file is present in the request, upload it to Cloudinary
+    if (request.file)
+    {
+      console.log("Uploading image to Cloudinary...");
+
+      // Wrap upload stream in a promise so we can await the result
+      await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'shuzzy' },
+          (error, result) => {
+            if (error) return reject(error);
+            imageUrl = result.secure_url;
+            resolve();
+          }
+        );
+        stream.end(request.file.buffer);
+      });
+
+      console.log("Image uploaded successfully:", imageUrl);
+    }
+
+    console.log("Incoming request body:", request.body);
+    console.log("Parsed imageUrl:", imageUrl);
 
     const catchRecord = await Catch.create({
       userId,
       catchName:      species,
       catchWeight:    weight,
       catchLength:    length,
-      catchLocation:  location, 
+      catchLocation:  location,
       catchComment:   comment,
-      imageUrl: imageUrl,
+      imageUrl:       imageUrl, // This will be null if no image was uploaded
       caughtAt:       new Date()
     });
 
@@ -41,29 +65,3 @@ export async function createCatch(request, response)
     return response.status(500).json({ success: false, message: 'Server error adding catch.' });
   }
 };
-
-
-
-
-/*
- * GET /api/catches
- * Returns all Catch documents belonging to the current user.
- */
-export async function listCatches(request, response)
-{
-  try
-  {
-    const catches = await Catch
-      .find({ userId: request.user.id })
-      .sort({ caughtAt: -1 });
-    
-    return response.json({ success: true, data: catches });
-  }
-
-  catch (error)
-  {
-    console.error('Error fetching catches:', error);
-    response.status(500).json({ success: false, message: 'Server error fetching all user catches.' });
-  }
-};
-
