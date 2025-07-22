@@ -9,44 +9,29 @@ dotenv.config();
  * POST /api/users/register
  * Creates a new User, generates an email‑verification token, and emails it.
  */
-export async function registerUser (request, response)
+export async function getUserProfile(request, response)
 {
-  // DEBUG
-  console.log('➡️ register payload:', request.body);
-  
-  console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
-  console.log('FROM_EMAIL:', process.env.FROM_EMAIL);
-  
-
-  const {firstName, lastName, email, password } = request.body;
-
-
   try
   {
-    // Prevent duplicate accounts
-    if (await User.findOne({ email }))
-      return response.status(400).json({ message: 'Email already in use' });
+    // Get user (without password, __v, and emailVerification)
+    const user = await User.findById(request.user.id).select('-password -__v -emailVerification');
 
-    const newUser = new User(
-      {
-        firstName,
-        lastName,
-        email,
-        password,
-      });
-    
-    const verificationToken = newUser.generateEmailVerificationToken();
-    await newUser.save();
+    if (!user)
+      return response.status(404).json({ message: 'User not found' });
 
-    await sendVerificationEmail(newUser.email, verificationToken);
+    // Find all catches tied to the user, sorted newest first
+    const catches = await Catch.find({ userId: request.user.id }).sort({ caughtAt: -1 });
 
-    response.status(201).json({ message: 'User created; verification email sent'});
+    return response.status(200).json({
+      success: true,
+      user,
+      catches
+    });
   }
-
   catch (error)
   {
-    console.error('Registration error:', error)
-    response.status(500).json({ message: 'Server error during user registration' });
+    console.error('Profile fetch error:', error);
+    response.status(500).json({ message: 'Server error fetching profile' });
   }
 }
 
