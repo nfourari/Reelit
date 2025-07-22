@@ -7,7 +7,7 @@ dotenv.config();
 dotenvFlow.config();
 
 const FROM_EMAIL = process.env.FROM_EMAIL;
-const HOST = process.env.WEB_URL;
+const HOST = process.env.API_URL;
 const API = `${HOST}/api/users`;
 
 
