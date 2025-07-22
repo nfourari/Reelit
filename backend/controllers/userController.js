@@ -147,7 +147,7 @@ export async function verifyUserEmail(request, response)
     await user.save();
     
     // Redirect to front-end confirmation confirmation page
-    response.redirect(`${process.env.WEB_URL}/verified-success`);
+    response.redirect(`${process.env.API_URL}/verified-success`);
   }
   catch (error)
   {

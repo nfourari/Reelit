@@ -6,9 +6,12 @@
 import dotenv     from 'dotenv';
 import path       from 'path';
 
-const envFile = process.env.NODE_ENC === 'production' ? '.env.production' : '.env.local';
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.local';
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+console.log('🔧 Loading environment from:', envFile);
+console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
 
 import mongoose from 'mongoose';
 import app from './index.js';
