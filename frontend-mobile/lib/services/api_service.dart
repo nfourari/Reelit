@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class ApiService {
   // Replace with our actual backend URL
@@ -132,5 +134,40 @@ class ApiService {
       return data['data'] as List<dynamic>;
     }
     throw Exception('Failed to load catches');
+  }
+
+    Future<Map<String, dynamic>> addCatch({
+    required String species,
+    required double weight,
+    required double length,
+    required String location,
+    required String comment,
+    File? photo,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/catches');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers.addAll(_headers)
+      ..fields['species'] = species
+      ..fields['weight'] = weight.toString()
+      ..fields['length'] = length.toString()
+      ..fields['location'] = location
+      ..fields['comment'] = comment;
+    if (photo != null) {
+      final mimeType = 'image/${photo.path.split('.').last}';
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'photo',
+          photo.path,
+          contentType: MediaType.parse(mimeType),
+        ),
+      );
+    }
+    final streamed = await request.send();
+    final resp = await http.Response.fromStream(streamed);
+    final data = jsonDecode(resp.body) as Map<String, dynamic>;
+    if ((resp.statusCode == 200 || resp.statusCode == 201) && data['success'] == true) {
+      return data;
+    }
+    throw Exception(data['message'] ?? 'Failed to add catch');
   }
 }

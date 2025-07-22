@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  const DashboardPage({Key? key}) : super(key: key);
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -15,13 +15,9 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   bool _loading = true;
   String? _error;
-
-  // Catches & stats
   List<Map<String, dynamic>> _feed = [];
   int _totalCatches = 0;
   String _personalBest = 'No catches yet';
-
-  // Weather
   int? _temp;
   int? _feelsLike;
   String? _humidity;
@@ -36,7 +32,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _loadAll() async {
     try {
-      // 1) Fetch catches
       final api = context.read<ApiService>();
       final raw = await api.fetchCatches();
       _feed = raw.map<Map<String, dynamic>>((item) {
@@ -57,17 +52,12 @@ class _DashboardPageState extends State<DashboardPage> {
           'image': item['imageUrl'],
         };
       }).toList();
-
-      // 2) Stats
       _totalCatches = raw.length;
       if (raw.isNotEmpty) {
         final heaviest = raw.reduce((a, b) =>
             (a['catchWeight'] as num) > (b['catchWeight'] as num) ? a : b);
-        _personalBest =
-            '${heaviest['catchWeight']} lbs ${heaviest['catchName']}';
+        _personalBest = '${heaviest['catchWeight']} lbs ${heaviest['catchName']}';
       }
-
-      // 3) Fetch weather
       const url = 'https://api.open-meteo.com/v1/forecast'
           '?latitude=28.5383&longitude=-81.3792'
           '&current_weather=true'
@@ -76,10 +66,9 @@ class _DashboardPageState extends State<DashboardPage> {
           '&wind_speed_unit=mph'
           '&precipitation_unit=inch';
       final resp = await http.get(Uri.parse(url));
-      if (resp.statusCode != 200) throw Exception('Weather ${resp.statusCode}');
+      if (resp.statusCode != 200) throw Exception('Weather \${resp.statusCode}');
       final data = json.decode(resp.body) as Map<String, dynamic>;
       final cw = data['current_weather'] as Map<String, dynamic>?;
-
       String? hum, pr;
       if (cw != null) {
         final hourly = data['hourly'] as Map<String, dynamic>;
@@ -88,15 +77,14 @@ class _DashboardPageState extends State<DashboardPage> {
         if (idx >= 0) {
           final rh = List<num>.from(hourly['relativehumidity_2m'] ?? []);
           final pp = List<num>.from(hourly['precipitation'] ?? []);
-          hum = '${rh[idx].round()}%';
+          hum = '\${rh[idx].round()}%';
           pr = pp[idx].toStringAsFixed(2);
         }
       }
-
       setState(() {
         _temp = cw != null ? (cw['temperature'] as num).round() : null;
         _feelsLike =
-            cw != null ? (cw['apparent_temperature'] as num).round() : null;
+            cw != null ? (cw['apparent_temperature'] as num?)?.round() : null;
         _wind = cw != null ? '${(cw['windspeed'] as num).round()} mph' : null;
         _humidity = hum;
         _precip = pr;
@@ -111,23 +99,21 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   @override
-  Widget build(BuildContext c) {
-    final theme = Theme.of(c);
-
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
     if (_error != null) {
       return Scaffold(
-        body: Center(child: Text('Error: $_error')),
+        body: Center(child: Text('Error: \$_error')),
       );
     }
-
     return Scaffold(
       body: Container(
+        constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFFFF3E0), Color(0xFFE0F7FA)],
@@ -143,95 +129,103 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 Text('Dashboard', style: theme.textTheme.headlineLarge),
                 const SizedBox(height: 16),
-
-                /// Recent Catches
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: _feed.map((item) {
-                        return Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const CircleAvatar(child: Icon(Icons.person)),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                    child: _feed.isEmpty
+                        ? SizedBox(
+                            height: 150,
+                            child: Center(
+                              child: Text(
+                                'No catches logged yet!\nAdd one now!',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                          )
+                        : Column(
+                            children: _feed.map((item) {
+                              return Column(
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(item['user'] as String,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          Text(item['time'] as String,
-                                              style: const TextStyle(
-                                                  color: Colors.grey)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                          '${item['action']} ${item['fish']}'),
-                                      if (item['image'] != null) ...[
-                                        const SizedBox(height: 8),
-                                        Image.network(
-                                          item['image'] as String,
-                                          height: 150,
-                                          fit: BoxFit.cover,
+                                      const CircleAvatar(child: Icon(Icons.person)),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  item['user'] as String,
+                                                  style: const TextStyle(
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  item['time'] as String,
+                                                  style: const TextStyle(
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text('${item['action']} ${item['fish']}'),
+                                            if (item['image'] != null) ...[
+                                              const SizedBox(height: 8),
+                                              Image.network(
+                                                item['image'] as String,
+                                                height: 150,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ],
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.thumb_up),
+                                                const SizedBox(width: 4),
+                                                Text('${item['likes']}'),
+                                                const SizedBox(width: 16),
+                                                const Icon(Icons.comment),
+                                                const SizedBox(width: 4),
+                                                Text('${item['comments']}'),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                      const SizedBox(height: 8),
-                                      Row(children: [
-                                        const Icon(Icons.thumb_up),
-                                        const SizedBox(width: 4),
-                                        Text('${item['likes']}'),
-                                        const SizedBox(width: 16),
-                                        const Icon(Icons.comment),
-                                        const SizedBox(width: 4),
-                                        Text('${item['comments']}'),
-                                      ]),
+                                      ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const Divider(),
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                                  const Divider(),
+                                ],
+                              );
+                            }).toList(),
+                          ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                /// Stats & Weather
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stats
                     Expanded(
                       child: Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Text('Your Stats',
-                                  style: theme.textTheme.titleMedium),
+                              Text('Your Stats', style: theme.textTheme.titleMedium),
                               const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
-                                  _statCard(c, 'Total Catches',
-                                      '$_totalCatches', Icons.pool),
-                                  _statCard(c, 'Personal Best', _personalBest,
-                                      Icons.emoji_events),
+                                  _statCard(context, 'Total Catches', '$_totalCatches', Icons.pool),
+                                  _statCard(context, 'Personal Best', _personalBest, Icons.emoji_events),
                                 ],
                               ),
                             ],
@@ -239,31 +233,23 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 16),
-
-                    // Weather
                     Expanded(
                       child: Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Text('Weather in Orlando',
-                                  style: theme.textTheme.titleMedium),
+                              Text('Weather in Orlando', style: theme.textTheme.titleMedium),
                               const SizedBox(height: 8),
-                              Text(_temp != null ? '$_temp°F' : 'N/A',
-                                  style: const TextStyle(fontSize: 24)),
+                              Text(_temp != null ? '$_temp°F' : 'N/A', style: const TextStyle(fontSize: 24)),
                               if (_feelsLike != null) ...[
                                 const SizedBox(height: 4),
-                                Text('Feels like $_feelsLike°F',
-                                    style:
-                                        const TextStyle(color: Colors.grey)),
+                                Text('Feels like $_feelsLike°F', style: const TextStyle(color: Colors.grey)),
                               ],
                               const SizedBox(height: 8),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Column(children: [
                                     const Icon(Icons.opacity),
@@ -300,8 +286,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _statCard(
-      BuildContext context, String title, String value, IconData icon) {
+  Widget _statCard(BuildContext context, String title, String value, IconData icon) {
     final theme = Theme.of(context);
     return Container(
       width: (MediaQuery.of(context).size.width - 64) / 2,
