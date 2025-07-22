@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 
 class ApiService {
   // Replace with our actual backend URL
@@ -10,14 +12,36 @@ class ApiService {
     defaultValue: 'https://shuzzy.top/api',
   );
 
-  // Optional: store auth token once logged in
   String? _token;
 
-  // Helper to include token in headers if present
+  ApiService() {
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('token');
+  }
+
+  Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    _token = token;
+    debugPrint('Token saved: $_token');
+  }
+
+  Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    _token = null;
+    debugPrint('Token cleared.');
+  }
+
   Map<String, String> get _headers {
-    final headers = {'Content-Type': 'application/json'};
-    if (_token != null) headers['Authorization'] = 'Bearer $_token';
-    return headers;
+    return {
+      'Content-Type': 'application/json',
+      if (_token != null) 'Authorization': 'Bearer $_token',
+    };
   }
 
   /// Log in and store the returned token for future calls.
@@ -170,4 +194,5 @@ class ApiService {
     }
     throw Exception(data['message'] ?? 'Failed to add catch');
   }
+
 }
