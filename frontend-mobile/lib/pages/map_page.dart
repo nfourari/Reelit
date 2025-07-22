@@ -123,9 +123,9 @@ class _MapPageState extends State<MapPage> {
 
       final speciesInSpot = (spot['species'] as List?)?.cast<String>() ?? [];
       final matchesSpecies = _selectedSpecies.isEmpty ||
-          speciesInSpot.any(_selectedSpecies.contains);
+              _selectedSpecies.every((selected) => speciesInSpot.contains(selected));
 
-      if (dist <= _distance && matchesSpecies) {
+      if (matchesSpecies && dist <= _distance) {
         markers.add(
           Marker(
             markerId: MarkerId(

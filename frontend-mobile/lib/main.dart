@@ -8,6 +8,7 @@ import 'pages/dashboard_page.dart';
 import 'pages/map_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/catch_page.dart';
 
 void main() => runApp(ShuzzyApp());
 
@@ -43,12 +44,14 @@ class _HomeShellState extends State<HomeShell> {
   final _pages = [
     DashboardPage(),
     MapPage(),
+    AddCatchPage(),
     ProfilePage(),
   ];
-  final _labels = ['Home', 'Map', 'Profile'];
+  final _labels = ['Home', 'Map', 'Add Catch', 'Profile'];
   final _icons = [
     Icons.home,
     Icons.map,
+    Icons.catching_pokemon, // Assuming CatchPage has a catching icon
     Icons.person,
   ];
 

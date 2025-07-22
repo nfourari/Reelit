@@ -124,4 +124,13 @@ class ApiService {
   void logout() {
     _token = null;
   }
+
+  Future<List<dynamic>> fetchCatches() async {
+    final resp = await http.get(Uri.parse('$_baseUrl/catches'), headers: _headers);
+    final data = jsonDecode(resp.body) as Map<String, dynamic>;
+    if (resp.statusCode == 200 && data['success'] == true) {
+      return data['data'] as List<dynamic>;
+    }
+    throw Exception('Failed to load catches');
+  }
 }
