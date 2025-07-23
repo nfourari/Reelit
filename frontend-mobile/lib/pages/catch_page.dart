@@ -58,7 +58,7 @@ class _AddCatchPageState extends State<AddCatchPage> {
       );
       Navigator.pushNamedAndRemoveUntil(
         context,
-        '/dashboard',
+        '/home/profile',
         (route) => false,
       );
     } catch (e) {

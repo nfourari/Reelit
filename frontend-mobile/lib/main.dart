@@ -10,7 +10,7 @@ import 'pages/profile_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/catch_page.dart';
 
-void main() => runApp(ShuzzyApp());
+void main() => runApp(const ShuzzyApp());
 
 class ShuzzyApp extends StatelessWidget {
   const ShuzzyApp({super.key});
@@ -20,14 +20,21 @@ class ShuzzyApp extends StatelessWidget {
         providers: [Provider<ApiService>(create: (_) => ApiService())],
         child: MaterialApp(
           title: 'Shuzzy Mobile',
-          theme: ThemeData(primarySwatch: Colors.blue),
+          theme: ThemeData(primarySwatch: Colors.orange),
           initialRoute: '/login',
           routes: {
-            '/login': (_) => LoginPage(),
-            '/signup': (_) => SignupPage(),
+            '/login': (_) => const LoginPage(),
+            '/signup': (_) => const SignupPage(),
+
             // After login/signup, route to HomeShell with bottom nav
-            '/home': (_) => HomeShell(),  
-            '/settings': (_) => SettingsPage(), // standalone settings
+            '/home': (_) => const HomeShell(),
+            '/home/dashboard': (_) => const HomeShell(initialTab: 0),
+            '/home/map': (_) => const HomeShell(initialTab: 1),
+            '/home/add-catch': (_) => const HomeShell(initialTab: 2),
+            '/home/profile': (_) => const HomeShell(initialTab: 3),
+
+
+            '/settings': (_) => const SettingsPage(), // standalone settings
           },
         ),
       );
@@ -35,25 +42,49 @@ class ShuzzyApp extends StatelessWidget {
 
 // HomeShell with BottomNavigationBar
 class HomeShell extends StatefulWidget {
+  final int initialTab;
+
+  const HomeShell({super.key, this.initialTab = 0});
+
   @override
   _HomeShellState createState() => _HomeShellState();
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _currentIndex = 0;
-  final _pages = [
+  late int _currentIndex = 0;
+
+  final _pages = const [
     DashboardPage(),
     MapPage(),
     AddCatchPage(),
     ProfilePage(),
   ];
+
   final _labels = ['Home', 'Map', 'Add Catch', 'Profile'];
   final _icons = [
     Icons.home,
     Icons.map,
-    Icons.catching_pokemon, // Assuming CatchPage has a catching icon
+    Icons.catching_pokemon,
     Icons.person,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialTab;
+  }
+
+  @override
+  void didUpdateWidget(HomeShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Update tab if the route changes
+    if (widget.initialTab != oldWidget.initialTab) {
+      setState(() {
+        _currentIndex = widget.initialTab;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -39,7 +39,7 @@ class ApiService {
 
   Map<String, String> get _headers {
     return {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json', // <- http package will handle this
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
   }
@@ -92,9 +92,9 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({
         'firstName': firstName,
-        'lastName':  lastName,
-        'email':     email,
-        'password':  password,
+        'lastName': lastName,
+        'email': email,
+        'password': password,
       }),
     );
 
@@ -103,8 +103,8 @@ class ApiService {
 
   /// Fetch the dashboard data (e.g. activity feed, quick stats, weather).
   Future<Map<String, dynamic>> fetchDashboard() async {
-    final resp = await http.get(Uri.parse('$_baseUrl/dashboard'),
-        headers: _headers);
+    final resp =
+        await http.get(Uri.parse('$_baseUrl/dashboard'), headers: _headers);
     return jsonDecode(resp.body);
   }
 
@@ -142,7 +142,8 @@ class ApiService {
 
   /// Get weather api
   Future<Map<String, dynamic>> fetchWeather() async {
-    final resp = await http.get(Uri.parse('$_baseUrl/weather'), headers: _headers);
+    final resp =
+        await http.get(Uri.parse('$_baseUrl/weather'), headers: _headers);
     return jsonDecode(resp.body);
   }
 
@@ -152,7 +153,8 @@ class ApiService {
   }
 
   Future<List<dynamic>> fetchCatches() async {
-    final resp = await http.get(Uri.parse('$_baseUrl/catches'), headers: _headers);
+    final resp =
+        await http.get(Uri.parse('$_baseUrl/catches'), headers: _headers);
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
     if (resp.statusCode == 200 && data['success'] == true) {
       return data['data'] as List<dynamic>;
@@ -160,7 +162,7 @@ class ApiService {
     throw Exception('Failed to load catches');
   }
 
-    Future<Map<String, dynamic>> addCatch({
+  Future<Map<String, dynamic>> addCatch({
     required String species,
     required double weight,
     required double length,
@@ -168,6 +170,14 @@ class ApiService {
     required String comment,
     File? photo,
   }) async {
+    // Ensure we have a token before making the request
+    if (_token == null) {
+      await _loadToken();
+      if (_token == null) {
+        throw Exception('User not authenticated. Please log in again.');
+      }
+    }
+
     final uri = Uri.parse('$_baseUrl/catches');
     final request = http.MultipartRequest('POST', uri)
       ..headers.addAll(_headers)
@@ -176,11 +186,12 @@ class ApiService {
       ..fields['length'] = length.toString()
       ..fields['location'] = location
       ..fields['comment'] = comment;
+
     if (photo != null) {
       final mimeType = 'image/${photo.path.split('.').last}';
       request.files.add(
         await http.MultipartFile.fromPath(
-          'photo',
+          'image',
           photo.path,
           contentType: MediaType.parse(mimeType),
         ),
@@ -189,10 +200,11 @@ class ApiService {
     final streamed = await request.send();
     final resp = await http.Response.fromStream(streamed);
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
-    if ((resp.statusCode == 200 || resp.statusCode == 201) && data['success'] == true) {
+
+    if ((resp.statusCode == 200 || resp.statusCode == 201) &&
+        data['success'] == true) {
       return data;
     }
-    throw Exception(data['message'] ?? 'Failed to add catch');
+    throw Exception(data['message'] ?? 'Failed to add catch. Status: ${resp.statusCode}');
   }
-
 }

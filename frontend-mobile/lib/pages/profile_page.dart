@@ -4,7 +4,7 @@ import '../services/api_service.dart';
 import '../models/user_profile.dart'; // Make sure this path is correct
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({Key ? key}) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
