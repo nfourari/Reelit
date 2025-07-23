@@ -381,7 +381,7 @@ class _AddCatchPageState extends State<AddCatchPage> with TickerProviderStateMix
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Keep track of all your catches from your fishing adventures!',
+                              'All your catches, all in one place!',
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 16,
@@ -408,10 +408,10 @@ class _AddCatchPageState extends State<AddCatchPage> with TickerProviderStateMix
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text(
+                            const Text(
                               'Fields marked with * are required',
                               style: TextStyle(
-                                color: Colors.blue.shade700,
+                                color: Color.fromARGB(255, 229, 129, 30),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),

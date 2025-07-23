@@ -263,18 +263,18 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.blue.shade200),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(
                                   Icons.info_outline,
-                                  color: Colors.blue.shade600,
+                                  color: Color.fromARGB(255, 229, 129, 30),
                                   size: 20,
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Text(
                                   'Fields marked with * are required',
                                   style: TextStyle(
-                                    color: Colors.blue.shade700,
+                                    color: Color.fromARGB(255, 210, 130, 25),
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
