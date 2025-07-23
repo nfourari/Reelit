@@ -179,6 +179,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildWelcomeCard() {
+    // Get the user's first name, with fallback
+    String welcomeText = 'Welcome back!';
+    if (_userProfile != null && _userProfile!.firstName.isNotEmpty) {
+      welcomeText = 'Hi, ${_userProfile!.firstName}!';
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -199,13 +205,13 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.waving_hand, color: Colors.white, size: 28),
-              SizedBox(width: 12),
+              const Icon(Icons.waving_hand, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
               Text(
-                'Welcome back!',
-                style: TextStyle(
+                welcomeText,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -225,8 +231,6 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
-
-
 
 
   Widget _buildStatsCard(

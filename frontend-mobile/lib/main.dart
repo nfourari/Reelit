@@ -20,7 +20,31 @@ class ShuzzyApp extends StatelessWidget {
         providers: [Provider<ApiService>(create: (_) => ApiService())],
         child: MaterialApp(
           title: 'Shuzzy Go',
-          theme: ThemeData(primarySwatch: Colors.orange),
+          theme: ThemeData(
+            primarySwatch: Colors.orange,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.orange,
+              primary: Colors.orange,
+              secondary: Colors.orange.shade300,
+            ),
+            textSelectionTheme: TextSelectionThemeData(
+              cursorColor: Colors.orange,
+              selectionColor: Colors.orange.withOpacity(0.3),
+              selectionHandleColor: Colors.orange,
+            ),
+            inputDecorationTheme: const InputDecorationTheme(
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.orange, width: 2),
+              ),
+            ),
+            tabBarTheme: const TabBarThemeData(
+              labelColor: Colors.orange,
+              unselectedLabelColor: Colors.grey,
+              indicator: UnderlineTabIndicator(
+                borderSide: BorderSide(color: Colors.orange, width: 2),
+              ),
+            ),
+          ),
           initialRoute: '/login',
           routes: {
             '/login': (_) => const LoginPage(),
@@ -90,7 +114,7 @@ class _HomeShellState extends State<HomeShell> {
   List<Widget> get _pages => [
     DashboardPage(onSwitchToProfile: () => _switchToTab(3)), // Pass callback to Dashboard
     const MapPage(),
-    const AddCatchPage(),
+    AddCatchPage(onSwitchToProfile: () => _switchToTab(3)),
     const ProfilePage(),
   ];
 
@@ -100,9 +124,9 @@ class _HomeShellState extends State<HomeShell> {
     // Create pages with callback for tab switching
     final pages =  [
     DashboardPage(onSwitchToProfile: () => _switchToTab(3)),
-    MapPage(),
-    AddCatchPage(),
-    ProfilePage(),
+    const MapPage(),
+    AddCatchPage(onSwitchToProfile: () => _switchToTab(3)),
+    const ProfilePage(),
   ];
 
     return Scaffold(
