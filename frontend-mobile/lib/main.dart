@@ -19,7 +19,7 @@ class ShuzzyApp extends StatelessWidget {
   Widget build(BuildContext context) => MultiProvider(
         providers: [Provider<ApiService>(create: (_) => ApiService())],
         child: MaterialApp(
-          title: 'Shuzzy Mobile',
+          title: 'Shuzzy Go',
           theme: ThemeData(primarySwatch: Colors.orange),
           initialRoute: '/login',
           routes: {
@@ -32,8 +32,6 @@ class ShuzzyApp extends StatelessWidget {
             '/home/map': (_) => const HomeShell(initialTab: 1),
             '/home/add-catch': (_) => const HomeShell(initialTab: 2),
             '/home/profile': (_) => const HomeShell(initialTab: 3),
-
-
             '/settings': (_) => const SettingsPage(), // standalone settings
           },
         ),
@@ -53,12 +51,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   late int _currentIndex = 0;
 
-  final _pages = const [
-    DashboardPage(),
-    MapPage(),
-    AddCatchPage(),
-    ProfilePage(),
-  ];
+  
 
   final _labels = ['Home', 'Map', 'Add Catch', 'Profile'];
   final _icons = [
@@ -86,14 +79,38 @@ class _HomeShellState extends State<HomeShell> {
     }
   }
 
+   // Callback function to switch tabs
+  void _switchToTab(int tabIndex) {
+    setState(() {
+      _currentIndex = tabIndex;
+    });
+  }
+
+  // Create pages with callback for tab switching
+  List<Widget> get _pages => [
+    DashboardPage(onSwitchToProfile: () => _switchToTab(3)), // Pass callback to Dashboard
+    const MapPage(),
+    const AddCatchPage(),
+    const ProfilePage(),
+  ];
+
   @override
   Widget build(BuildContext context) {
+
+    // Create pages with callback for tab switching
+    final pages =  [
+    DashboardPage(onSwitchToProfile: () => _switchToTab(3)),
+    MapPage(),
+    AddCatchPage(),
+    ProfilePage(),
+  ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        items: List.generate(_pages.length, (i) {
+        items: List.generate(pages.length, (i) {
           return BottomNavigationBarItem(
             icon: Icon(_icons[i]),
             label: _labels[i],

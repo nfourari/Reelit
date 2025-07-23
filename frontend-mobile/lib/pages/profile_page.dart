@@ -35,8 +35,8 @@ class _ProfilePageState extends State<ProfilePage> {
       _userCatches = rawCatches.map<Map<String, dynamic>>((item) {
         return {
           'fish': item['catchName'],
-          'weight': item['catchWeight'],
-          'length': item['catchLength'],
+          'weight': (item['catchWeight'] as num).toDouble(), // Ensure it's a number
+          'length': (item['catchLength'] as num).toDouble(),
           'location': item['catchLocation'],
           'comment': item['catchComment'],
           'time': DateTime.parse(item['caughtAt']), // .difference(DateTime.now()).inHours.abs()}h ago',
@@ -330,7 +330,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),
@@ -379,7 +379,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     Icon(Icons.verified, size: 16, color: Colors.green),
                                     SizedBox(width: 4),
                                     Text(
-                                      'Verified',
+                                      'Email Verified',
                                       style: TextStyle(
                                         color: Colors.green,
                                         fontWeight: FontWeight.w600,
@@ -407,7 +407,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(width: 12),
                           _buildStatsCard(
-                            'Personal Best',
+                            'Personal All-Time Best',
                             _getPersonalBest().split(' ').take(2).join(' '),
                             Icons.emoji_events,
                             const Color(0xFFF59E0B),
@@ -420,7 +420,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       // Section title
                       const Row(
                         children: [
-                          Icon(Icons.catching_pokemon, color: Color(0xFF2563EB)),
+                          Icon(Icons.catching_pokemon, color: Color.fromARGB(255, 223, 93, 23)),
                           SizedBox(width: 8),
                           Text(
                             'My Catches',

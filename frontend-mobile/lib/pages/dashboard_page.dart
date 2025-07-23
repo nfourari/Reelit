@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
+import '../models/user_profile.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  final VoidCallback? onSwitchToProfile;
+  const DashboardPage({super.key, this.onSwitchToProfile});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -15,6 +17,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   bool _loading = true;
   String? _error;
+  UserProfile? _userProfile;
   List<Map<String, dynamic>> _recentCatches = [];
   int _totalCatches = 0;
   String _personalBest = 'No catches yet';
@@ -33,6 +36,10 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _loadAll() async {
     try {
       final api = context.read<ApiService>();
+
+      final profileData = await api.getProfile();
+      _userProfile = UserProfile.fromJson(profileData);
+
       final raw = await api.fetchCatches();
 
       _recentCatches = raw.take(5).map<Map<String, dynamic>>((item) {
@@ -40,10 +47,10 @@ class _DashboardPageState extends State<DashboardPage> {
           'user': item['userName'] ?? 'You',
           'action': 'caught a',
           'fish': item['catchName'],
-          'weight': '${item['catchWeight']} lbs',
+          'weight': (item['catchWeight'] as num).toDouble(),
           'location': item['catchLocation'],
           'time': DateTime.parse(item['caughtAt']),
-          'comments': item['comments'] ?? 0,
+          'comments': item['catchComment'] ?? 0,
           'image': item['imageUrl'],
         };
       }).toList();
@@ -61,7 +68,7 @@ class _DashboardPageState extends State<DashboardPage> {
       setState(() {
         _loading = false;
       });
-    } catch(e) {
+    } catch (e) {
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -69,49 +76,107 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-
   Future<void> _loadWeather() async {
     try {
       const url = 'https://api.open-meteo.com/v1/forecast'
-          '?latitude=28.5383&longitude=-81.3792'
-          '&current_weather=true'
-          '&hourly=relativehumidity_2m,precipitation'
-          '&temperature_unit=fahrenheit'
-          '&wind_speed_unit=mph'
-          '&precipitation_unit=inch';
-      
+        '?latitude=28.5383&longitude=-81.3792'
+        '&current_weather=true'
+        '&current=apparent_temperature'
+        '&hourly=relativehumidity_2m,precipitation'
+        '&temperature_unit=fahrenheit'
+        '&wind_speed_unit=mph'
+        '&precipitation_unit=inch';
+
       final resp = await http.get(Uri.parse(url));
-      if (resp.statusCode != 200) return;
+      if (resp.statusCode != 200) {
+        // print('🌤️ Weather API failed with status: ${resp.statusCode}');
+        return;
+      }
       
       final data = json.decode(resp.body) as Map<String, dynamic>;
-      final cw = data['current_weather'] as Map<String, dynamic>?;
+      // print('🌤️ Weather API Response keys: ${data.keys}'); // Debug log
+      
+      final currentWeather = data['current_weather'] as Map<String, dynamic>?;
+      final current = data['current'] as Map<String, dynamic>?;
+      final hourly = data['hourly'] as Map<String, dynamic>?;
       
       String? hum, pr;
-      if (cw != null) {
-        final hourly = data['hourly'] as Map<String, dynamic>;
+      
+      if (currentWeather != null && hourly != null) {
+        // print('🌤️ Current Weather: $currentWeather'); // Debug log
+        
+        // Get current time and find matching hourly data
+        final currentTime = currentWeather['time'] as String?;
         final times = List<String>.from(hourly['time'] ?? []);
-        final idx = times.indexOf(cw['time'] as String);
-        if (idx >= 0) {
-          final rh = List<num>.from(hourly['relativehumidity_2m'] ?? []);
-          final pp = List<num>.from(hourly['precipitation'] ?? []);
-          hum = '${rh[idx].round()}%';
-          pr = pp[idx].toStringAsFixed(2);
+        final humidityList = List<num>.from(hourly['relativehumidity_2m'] ?? []);
+        final precipList = List<num>.from(hourly['precipitation'] ?? []);
+        
+        // print('🌤️ Current Time: $currentTime');
+        // print('🌤️ First few times: ${times.take(3)}');
+        // print('🌤️ Humidity list length: ${humidityList.length}');
+        // print('🌤️ Precipitation list length: ${precipList.length}');
+        
+        if (currentTime != null) {
+          // Find the closest time match (current time might be between hourly intervals)
+          int bestIndex = -1;
+          DateTime? currentDateTime;
+          
+          try {
+            currentDateTime = DateTime.parse(currentTime);
+            DateTime closestTime = DateTime.parse(times[0]);
+            bestIndex = 0;
+            
+            for (int i = 0; i < times.length; i++) {
+              final hourlyTime = DateTime.parse(times[i]);
+              if (hourlyTime.difference(currentDateTime).abs() < 
+                  closestTime.difference(currentDateTime).abs()) {
+                closestTime = hourlyTime;
+                bestIndex = i;
+              }
+            }
+            
+            // print('🌤️ Best matching index: $bestIndex for time: ${times[bestIndex]}');
+            
+          } catch (e) {
+            // print('🌤️ Time parsing error: $e');
+            bestIndex = 0; // Fallback to first entry
+          }
+          
+          if (bestIndex >= 0 && bestIndex < humidityList.length) {
+            hum = '${humidityList[bestIndex].round()}%';
+            // print('🌤️ Found humidity: $hum');
+          }
+          
+          if (bestIndex >= 0 && bestIndex < precipList.length) {
+            pr = '${precipList[bestIndex].toStringAsFixed(2)}"';
+            // print('🌤️ Found precipitation: $pr');
+          }
         }
       }
       
       setState(() {
-        _temp = cw != null ? (cw['temperature'] as num).round() : null;
-        _feelsLike = cw != null ? (cw['apparent_temperature'] as num?)?.round() : null;
-        _wind = cw != null ? '${(cw['windspeed'] as num).round()} mph' : null;
+        _temp = currentWeather != null ? (currentWeather['temperature'] as num).round() : null;
+        _wind = currentWeather != null ? '${(currentWeather['windspeed'] as num).round()} mph' : null;
         _humidity = hum;
         _precip = pr;
+        _feelsLike = current != null && current['apparent_temperature'] != null 
+          ? (current['apparent_temperature'] as num).round() 
+          : _temp; 
       });
+      
+      print('🌤️ Final Values - Temp: $_temp, Humidity: $_humidity, Wind: $_wind, Precip: $_precip');
     } catch (e) {
-      // Weather is optional, don't fail the whole page
-      print('Weather error: $e');
+      print('🌤️ Weather error: $e');
+      // Set demo fallback values
+      setState(() {
+        _temp = 96;
+        _humidity = '75%';
+        _wind = '3 mph';
+        _precip = '0.0"';
+        _feelsLike = 102;
+      });
     }
   }
-
 
   Widget _buildWelcomeCard() {
     return Container(
@@ -162,7 +227,10 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
 
-  Widget _buildStatsCard(String title, String value, IconData icon, Color color) {
+
+
+  Widget _buildStatsCard(
+      String title, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -236,7 +304,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.wb_sunny, color: Colors.orange, size: 20),
+                child:
+                    const Icon(Icons.wb_sunny, color: Colors.orange, size: 20),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -276,9 +345,13 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               Column(
                 children: [
-                  _buildWeatherDetail(Icons.opacity, 'Humidity', _humidity ?? '—'),
+                  _buildWeatherDetail(
+                      Icons.opacity, 'Humidity', _humidity ?? '—'),
                   const SizedBox(height: 8),
                   _buildWeatherDetail(Icons.air, 'Wind', _wind ?? '—'),
+                  const SizedBox(height: 8),
+                  _buildWeatherDetail(Icons.umbrella, 'Precipitation',
+                                      _precip != null ? '${_precip}" rain' : '—'),
                 ],
               ),
             ],
@@ -287,7 +360,6 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
-
 
   Widget _buildWeatherDetail(IconData icon, String label, String value) {
     return Row(
@@ -320,7 +392,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildRecentCatchCard(Map<String, dynamic> catchData) {
     final DateTime caughtAt = catchData['time'] as DateTime;
     final String timeAgo = _getTimeAgo(caughtAt);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -363,9 +435,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Content
           Expanded(
             child: Column(
@@ -407,7 +479,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
           ),
-          
+
           // Weight badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -432,7 +504,7 @@ class _DashboardPageState extends State<DashboardPage> {
   String _getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -443,7 +515,6 @@ class _DashboardPageState extends State<DashboardPage> {
       return 'Just now';
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -496,9 +567,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         // Welcome card
                         _buildWelcomeCard(),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // Stats row
                         Row(
                           children: [
@@ -511,22 +582,22 @@ class _DashboardPageState extends State<DashboardPage> {
                             const SizedBox(width: 12),
                             _buildStatsCard(
                               'Personal Best',
-                              _personalBest.length > 15 
-                                ? '${_personalBest.split(' ').take(2).join(' ')}'
-                                : _personalBest,
+                              _personalBest.length > 15
+                                  ? '${_personalBest.split(' ').take(2).join(' ')}'
+                                  : _personalBest,
                               Icons.emoji_events,
                               const Color(0xFFF59E0B),
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // Weather card
                         _buildWeatherCard(),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Recent catches section header
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -536,7 +607,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 Icon(Icons.history, color: Color(0xFF2563EB)),
                                 SizedBox(width: 8),
                                 Text(
-                                  'Recent Catches',
+                                  'Your Recent Catches',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -547,9 +618,9 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             if (_recentCatches.isNotEmpty)
                               TextButton(
-                                onPressed: () {
+                                onPressed: () {                      
                                   // Navigate to full catches list or profile
-                                  // You can implement this navigation later
+                                  widget.onSwitchToProfile?.call();
                                 },
                                 child: const Text('View All'),
                               ),
@@ -559,7 +630,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                 ),
-                
+
                 // Recent catches list
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -608,12 +679,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         )
                       : SliverList(
                           delegate: SliverChildBuilderDelegate(
-                            (context, index) => _buildRecentCatchCard(_recentCatches[index]),
+                            (context, index) =>
+                                _buildRecentCatchCard(_recentCatches[index]),
                             childCount: _recentCatches.length,
                           ),
                         ),
                 ),
-                
+
                 // Bottom padding
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 20),
