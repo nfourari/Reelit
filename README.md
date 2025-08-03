@@ -1,6 +1,6 @@
 # Shuzzy
 
-*Visit our website:* https://www.Shuzzy.top
+*Visit our website:* https://www.shuzzy.top
 
 *Frontend code is listed within a different repository located here:* https://github.com/nfourari/Shuzzy-Frontend
 
