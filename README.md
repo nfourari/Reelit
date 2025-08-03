@@ -1,13 +1,13 @@
-# Shuzzy
+# Reelit
 
-*Visit our website:* https://www.shuzzy.top
+*Visit our website:* https://www.Reelit.top
 
-*Frontend code is listed within a different repository located here:* https://github.com/nfourari/Shuzzy-Frontend
+*Frontend code is listed within a different repository located here:* https://github.com/nfourari/Reelit-Frontend
 
 
 ## Application Overview
 
-**Shuzzy** is an interactive fishing platform that lets users:
+**Reelit** is an interactive fishing platform that lets users:
 
 - **Explore** a map of lakes, rivers, and other bodies of water.
 - **Search** for a specific fish or the types of fish found in a specific area
@@ -16,7 +16,7 @@
 - **Manage** personal profiles, track catch history, and follow friends.
 
 Built as a full-stack MERN app (with a React web client and a Flutter Android app),
-Shuzzy provides both browser and mobile experiences for fishing enthusiasts and beginners alike.
+Reelit provides both browser and mobile experiences for fishing enthusiasts and beginners alike.
 
 This repository contains a MERN (MongoDB, Express, React, Node.js) application with both web and
 mobile front-ends. Below is an overview of the setup, current progress, and instructions for
@@ -27,7 +27,7 @@ getting started.
 ## Repository Structure
 
 ```
-shuzzy/
+Reelit/
 ├─ backend/               # Express API server
 │  ├─ server.js           # Main Express entry point
 │  ├─ package.json        # Backend dependencies and scripts
